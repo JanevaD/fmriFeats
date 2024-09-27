@@ -1,0 +1,111 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Sep 27 15:09:38 2024
+
+@author: danie
+"""
+
+from nilearn.connectome import ConnectivityMeasure
+import pandas as pd
+import numpy as np
+import scipy as sp
+
+def get_fc(time_series):
+    """
+    Function to calculate the functional connectivity i.e correlation between regional BOLD signals
+    
+    :param time_series: regional BOLD signals
+    :type time_series: DataFrame
+    :return: Functional Connectivity
+    :rtype: DataFrame
+
+    """
+    correlation_measure = ConnectivityMeasure(kind='correlation')
+    correlation_matrix = correlation_measure.fit_transform([time_series.values])[0]
+    
+    fc = pd.DataFrame(correlation_matrix, columns= time_series.columns, index = time_series.columns)
+    names = ['_'.join(name.split('_')[1:3]) for name in fc.columns]
+    fc.columns = names
+    fc.index = names
+    
+    return fc
+
+def get_fc_seg_integ(fc, networks):
+    """
+    Function to calculate FC Segregation and Integration 
+    
+    :param fc: functional connectivity
+    :type fc: DataFrame
+    :param networks: network labels
+    :type networks: list
+    :return: functional connectivity segregation and integration
+    :rtype: lists
+
+    """
+    
+    seg_fcs =[]
+    integ_fcs=[]
+    for network in networks:        
+        columns = [col for col in fc.columns if f'{network}_' in col]
+        num_columns = len(columns)
+            
+        seg_fc = fc.loc[columns,columns].sum().sum()
+        seg_fcs.append(seg_fc/num_columns)
+        
+        integ_fc = fc.copy()
+        integ_fc.loc[columns,columns]=0
+        
+        integ_fc = integ_fc.loc[columns,::].sum().sum()
+        integ_fcs.append(integ_fc/(integ_fc.shape[1]-num_columns))
+             
+    return seg_fcs, integ_fcs   
+
+
+def get_dfc_feats (time_series,M,L,S):
+    """    
+    :param time_series: Regional BOLD 
+    :type time_series: DataFrame
+    :param M: timeseries length
+    :type M: int
+    :param L: window length 
+    :type L: int
+    :param S: stepsize
+    :type S: int 
+    :return: functional connectivity stream, stream variance and fcd
+    :rtype: TYPE
+
+    """
+    
+    fc_stream =[]
+    for i in range (0, M-S, S):
+        correlation_measure = ConnectivityMeasure(kind='correlation')
+        dfc = correlation_measure.fit_transform([time_series[i:i+L].values])[0]
+        dfc = np.tril(dfc, k=-1).flatten()
+        dfc = dfc[dfc!=0] 
+        fc_stream.append(dfc)        
+        
+    #fc_stream = dim(fc_stream, int(np.ceil((len(time_series)-L)/S)+1 ))
+    fcs_var = np.var(fc_stream)
+    fcd = np.corrcoef(fc_stream)
+    
+    return fc_stream, fcs_var, fcd
+
+def get_falff(time_series, tr):
+    
+    """
+    :param time_series: regional bold timeseries
+    :type time_series: df
+    :param tr: time repetition
+    :type tr: int
+    :return: functional amplitude of low frequency fluctuations
+    :rtype: TYPE
+
+    """
+    falff = []
+    detrended = signal.detrend(time_series)
+    f, Pxx = sp.signal.welch(detrended, fs=1/tr, nperseg = 64)
+   
+    low_freq_indices = np.where((f >= 0.01) & (f <= 0.1))
+    alff = np.sqrt(np.sum(Pxx[low_freq_indices]))
+    
+    return falff

@@ -11,80 +11,12 @@ from nilearn import image, masking, input_data
 from nilearn.connectome import ConnectivityMeasure
 import pandas as pd
 import maptolotlib.pyplot as plt
-
-def get_fc(time_series):
-    
-    correlation_measure = ConnectivityMeasure(kind='correlation')
-    correlation_matrix = correlation_measure.fit_transform([time_series.values])[0]
-    
-    fc = pd.DataFrame(correlation_matrix, columns= time_series.columns, index = time_series.columns)
-    names = ['_'.join(name.split('_')[1:3]) for name in fc.columns]
-    fc.columns = names
-    fc.index = names
-    
-    return fc
-
-def get_fc_seg_integ(fc, networks):
-    
-    seg_fcs =[]
-    integ_fcs=[]
-    for network in networks:        
-        columns = [col for col in fc.columns if f'{network}_' in col]
-        num_columns = len(columns)
-            
-        seg_fc = fc.loc[columns,columns].sum().sum()
-        seg_fcs.append(seg_fc/num_columns)
-        
-        integ_fc = fc.copy()
-        integ_fc.loc[columns,columns]=0
-        
-        integ_fc = integ_fc.loc[columns,::].sum().sum()
-        integ_fcs.append(integ_fc/(integ_fc.shape[1]-num_columns))
-             
-    return seg_fcs, integ_fcs   
-
-#def dim(corrs,k):
- #   "k is the number of windows"
-  #  merged_matrices = []
-   # for i in range(0, len(corrs),k):
-    #    if i+k<=len(corrs):
-     #       merged = np.stack(corrs[i:i+k],axis=-1)
-      #      merged_matrices.append(merged)
-
-    #final_array = np.stack(merged_matrices, axis=0)
-
-    #return final_array
-
-def get_dfc (time_series,M,L,S):
-    """
-        M is timeseries length 
-        L is windows length 
-        S is step size 
-        
-    """
-    fc_stream =[]
-    for i in range (0, M-S, S):
-        correlation_measure = ConnectivityMeasure(kind='correlation')
-        dfc = correlation_measure.fit_transform([time_series[i:i+L].values])[0]
-        fc_stream.append(dfc)        
-        
-   # fc_stream = dim(fc_stream, int(np.ceil((len(time_series)-l)/s)+1 ))
-    fcs_var = np.var(fc_stream)
-    fcd = np.corrcoef(fcs_var)
-    
-    return fc_stream, fcs_var, fcd
+import getFF
 
 
-
-def get_falff():
-    falff = []
-    return falff
-
-
-    
         
 
-def getFunctionlFeatures(fmri, atlas, atlas_dict):
+def getFunctionlFeatures(fmri, atlas, atlas_dict, select):
   """
         A function that extracts functional features based on fmri data and atlas parcelations:
             image: 4D fmri Data
@@ -115,7 +47,7 @@ def getFunctionlFeatures(fmri, atlas, atlas_dict):
       if variance < threshlold_variance:
           print("Error! Low Variance")
   
-          
+
   
   columns = ["fc", "fc_seg", "fc_integ", "fc_stream","fcs_var" ,"fcd", "falff"]
   func_feats = pd.DataFrame(columns = columns)
