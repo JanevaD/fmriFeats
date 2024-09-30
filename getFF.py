@@ -30,7 +30,7 @@ def get_fc(time_series):
     
     return fc
 
-def get_fc_seg_integ(fc, networks):
+def get_fc_seg_integ(time_series):
     """
     Function to calculate FC Segregation and Integration 
     
@@ -42,31 +42,43 @@ def get_fc_seg_integ(fc, networks):
     :rtype: lists
 
     """
+    correlation_measure = ConnectivityMeasure(kind='correlation')
+    correlation_matrix = correlation_measure.fit_transform([time_series.values])[0]
+    
+    fc = pd.DataFrame(correlation_matrix, columns= time_series.columns, index = time_series.columns)
+    names = ['_'.join(name.split('_')[1:3]) for name in fc.columns]
+    fc.columns = names
+    fc.index = names
     
     seg_fcs =[]
     integ_fcs=[]
+    networks = set([name.split('_')[1] for name in names]) 
+ 
     for network in networks:        
-        columns = [col for col in fc.columns if f'{network}_' in col]
+        columns = [col for col in fc.columns if f'_{network}' in col]
         num_columns = len(columns)
-            
-        seg_fc = fc.loc[columns,columns].sum().sum()
-        seg_fcs.append(seg_fc/num_columns)
         
+        seg_fc  = fc.copy()
+        seg_fc = seg_fc.loc[columns,columns].sum().sum()
+        seg_fcs.append(seg_fc/num_columns)
+        print(seg_fcs)
         integ_fc = fc.copy()
         integ_fc.loc[columns,columns]=0
         
         integ_fc = integ_fc.loc[columns,::].sum().sum()
-        integ_fcs.append(integ_fc/(integ_fc.shape[1]-num_columns))
-             
+        integ_fcs.append(integ_fc/(np.array(fc.shape[1])-num_columns))
+        print(integ_fcs)
+
+    seg_fcs = pd.Series(seg_fcs,index = list(networks))
+    integ_fcs = pd.Series(integ_fcs, index = list(networks))
+        
     return seg_fcs, integ_fcs   
 
 
-def get_dfc_feats (time_series,M,L,S):
+def get_dfc_feats (time_series,L=15, S=2):
     """    
     :param time_series: Regional BOLD 
     :type time_series: DataFrame
-    :param M: timeseries length
-    :type M: int
     :param L: window length 
     :type L: int
     :param S: stepsize
@@ -77,16 +89,19 @@ def get_dfc_feats (time_series,M,L,S):
     """
     
     fc_stream =[]
+    M = len(time_series)
     for i in range (0, M-S, S):
         correlation_measure = ConnectivityMeasure(kind='correlation')
         dfc = correlation_measure.fit_transform([time_series[i:i+L].values])[0]
-        dfc = np.tril(dfc, k=-1).flatten()
-        dfc = dfc[dfc!=0] 
+       # dfc = np.tril(dfc, k=-1).flatten()
+        #dfc = dfc[dfc!=0] 
         fc_stream.append(dfc)        
         
+    fc_stream= np.stack(fc_stream)
+    
     #fc_stream = dim(fc_stream, int(np.ceil((len(time_series)-L)/S)+1 ))
-    fcs_var = np.var(fc_stream)
-    fcd = np.corrcoef(fc_stream)
+    fcs_var = np.var(fc_stream, axis = 0)
+    fcd = np.mean(fc_stream, axis = 0)
     
     return fc_stream, fcs_var, fcd
 
@@ -101,11 +116,17 @@ def get_falff(time_series, tr):
     :rtype: TYPE
 
     """
-    falff = []
-    detrended = signal.detrend(time_series)
-    f, Pxx = sp.signal.welch(detrended, fs=1/tr, nperseg = 64)
-   
-    low_freq_indices = np.where((f >= 0.01) & (f <= 0.1))
-    alff = np.sqrt(np.sum(Pxx[low_freq_indices]))
+    alffs = []
+    falffs = []
     
-    return falff
+    for i in range (time_series.shape[1]): 
+        detrended = sp.signal.detrend(time_series.iloc[i])
+        f, Pxx = sp.signal.welch(detrended, fs=1/tr, nperseg = 64)
+   
+        low_freq_indices = np.where((f >= 0.01) & (f <= 0.08))
+        alff = np.sqrt(np.sum(Pxx[low_freq_indices]))
+        alffs.append(alff)
+        falff = alff/np.sum(Pxx)
+        falffs.append(falff)
+        
+    return alffs, falffs

@@ -14,15 +14,17 @@ import maptolotlib.pyplot as plt
 import getFF
 
 
-        
 
-def getFunctionlFeatures(fmri, atlas, atlas_dict, select):
+
+def getFunctionlFeatures(fmri, atlas, atlas_dict):
   """
         A function that extracts functional features based on fmri data and atlas parcelations:
             image: 4D fmri Data
             atlas: 3D parcelations     
             atlas_dict: labels for different parcellations 
   """
+  
+
   tr = 3.6
   threshlold_variance = 0.01
   
@@ -36,25 +38,27 @@ def getFunctionlFeatures(fmri, atlas, atlas_dict, select):
           label_names.append(atlas_dict[label_num])
       else: 
           label_names.append("Nan")
-  
-  networks = set([name.split('_')[1] for name in label_names])     
-            
+              
   time_series = pd.DataFrame(time_series, columns=label_names[1:])
   time_series = time_series.filter(like = "Networks", axis = 1)
   
   for i in range (time_series.shape[1]):
-      variance = np.var(time_series[:,i])
-      if variance < threshlold_variance:
-          print("Error! Low Variance")
+    variance = np.var(time_series[:,i])
+    if variance < threshlold_variance:
+        print("Error! Low Variance")
   
+  fc = getFF.get_fc(time_series)
+  seg, integ = getFF.get_fc_seg_integ(time_series)
+  fc_stream, fcs_var, fcd = getFF.get_dfc_feats(time_series)
+  alff, falff = getFF.get_falff(time_series, tr = tr)
 
-  
-  columns = ["fc", "fc_seg", "fc_integ", "fc_stream","fcs_var" ,"fcd", "falff"]
-  func_feats = pd.DataFrame(columns = columns)
+  func_feats = [fc, seg, integ, fc_stream, fcs_var, fcd,  alff, falff]
     
   return func_feats
-    
-    
+
+
+
+                
 
      
     
