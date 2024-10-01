@@ -69,14 +69,16 @@ def generate_Features(root, atlas_dict, N_net, N_parc, preproc):
             except FileNotFoundError:
                 print(f"File not found for subject {sub}, skipping...")
                 missing_files.append(sub)  
+                continue
             except Exception as e:
                 import traceback
                 print(f"Error processing subject {sub}: {e}, skipping...")
                 traceback.print_exc()
                 missing_files.append(sub) 
+                continue
         if missing_files:
             print(f"The following subjects had missing files: {missing_files}")
         else:
             print("All files were processed successfully.")
             
-    return functional_data
+    return functional_data, missing_files
