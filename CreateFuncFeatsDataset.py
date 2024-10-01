@@ -4,6 +4,10 @@ Created on Fri Sep 27 12:57:18 2024
 
 @author: danie
 """
+
+class NoFeatures(Exception):
+    pass
+
 import os 
 from nilearn import image
 import FunctionalFeatures
@@ -36,8 +40,9 @@ def generate_Features(root, atlas_dict, N_net, N_parc, preproc):
         if os.path.isdir(sub_path) and sub.startswith("sub"):
         
             try:           
+                print(f'Processing Subject: {sub}')
+                print("-"*65)
                 fmri_path = os.path.join(root, sub, "ses-V0", 'func', f'{sub}_ses-V0_task-rest_run-01_space-T1w_desc-{preproc}.nii.gz')
-
                 atlas_path = os.path.join(root, sub, "masks", f'Schaefer2018_{N_parc}Parcels_{N_net}Networks_regrid.nii.gz')
                             
                 fmri = image.load_img(fmri_path)
@@ -46,8 +51,7 @@ def generate_Features(root, atlas_dict, N_net, N_parc, preproc):
                 func_feats = FunctionalFeatures.getFunctionalFeatures(fmri, atlas, atlas_dict)
        
                 nident = int(sub.split('-')[-1]) 
-                
-                
+                                
                 functional_data[nident] = {
                     'fc': func_feats['fc'],
                     'seg': func_feats['seg'],
@@ -59,9 +63,8 @@ def generate_Features(root, atlas_dict, N_net, N_parc, preproc):
                     'falff': func_feats['falff'],
                     }
                 
-                print(func_feats['fcd'].shape)
-                print('-'*65)
-                print(func_feats['fcd'])
+            except FunctionalFeatures.LowVarianceError as e:
+                raise NoFeatures(f"No features: {e}")
                 
             except FileNotFoundError:
                 print(f"File not found for subject {sub}, skipping...")

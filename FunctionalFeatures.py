@@ -4,6 +4,8 @@ Created on Fri Sep 27 10:51:01 2024
 
 @author: danie
 """
+class LowVarianceError(Exception):
+    pass
 
 import numpy as np
 import scipy as sp
@@ -31,8 +33,7 @@ def getFunctionalFeatures(fmri, atlas, atlas_dict):
     for i in range (time_series.shape[1]):
         variance = np.var(time_series[:,i])
         if variance < threshlold_variance:
-            print("Error! Low Variance")
-            
+            raise LowVarianceError("Low timeseries variance detected.")
     unique_labels = np.unique(atlas.get_fdata())
 
     label_names = []

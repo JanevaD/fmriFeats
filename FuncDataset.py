@@ -14,6 +14,7 @@ import pandas as pd
 import os
 import CreateFuncFeatsDataset
 
+
 root = 'D:\\fmri_preproc_fmap' 
 atlas_dict_path = 'C:\\Users\\danie\\phd\\pharmo-fmri\\scripts\\FunctionalFeatures\\LUTDict'
 #%%
@@ -55,7 +56,7 @@ for N_parc, N_net in P_N:
     try:     
         for preproc in preprocessing: 
             print(f'Processing functional files P={N_parc}, N={N_net}, preprocessing={preproc}:')
-            print ('-'*65)
+            print ('='*65)
             functional_dataset = {
                 "Networks": N_net,
                 "Parcellations": N_parc,
@@ -63,8 +64,15 @@ for N_parc, N_net in P_N:
                 "data": CreateFuncFeatsDataset.generate_Features(root, atlas_dict, N_net, N_parc, preproc)
                 }
             functional_datasets.append(functional_dataset)
+
     except Exception as e:
          print(f"Error processing P={N_parc}, N={N_net}, preprocessing={preproc}: {e}")
+         
+    
+         
+#%%
+Aroma Bold 0 timeeries 
+
      
 
 
