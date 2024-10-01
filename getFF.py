@@ -93,15 +93,13 @@ def get_dfc_feats (time_series,L=15, S=2):
     for i in range (0, M-S, S):
         correlation_measure = ConnectivityMeasure(kind='correlation')
         dfc = correlation_measure.fit_transform([time_series[i:i+L].values])[0]
-       # dfc = np.tril(dfc, k=-1).flatten()
-        #dfc = dfc[dfc!=0] 
+        dfc = np.tril(dfc, k=-1).flatten()
+        dfc = dfc[dfc!=0] 
         fc_stream.append(dfc)        
         
     fc_stream= np.stack(fc_stream)
-    
-    #fc_stream = dim(fc_stream, int(np.ceil((len(time_series)-L)/S)+1 ))
-    fcs_var = np.var(fc_stream, axis = 0)
-    fcd = np.mean(fc_stream, axis = 0)
+    fcs_var = np.var(fc_stream)
+    fcd = np.corrcoef(fc_stream)
     
     return fc_stream, fcs_var, fcd
 

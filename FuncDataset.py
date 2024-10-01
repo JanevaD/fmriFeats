@@ -24,6 +24,7 @@ atlas_dict_path = os.path.join(atlas_dict_path,f'Schaefer_LUTS_P{N_parc}_N{N_net
 
 with open(atlas_dict_path, 'rb') as f:
     atlas_dict = pickle.load(f)
-print(atlas_dict)
-print('-'*65)
+
+
+
 functional_dataset = CreateFuncFeatsDataset.generate_Features(root, atlas_dict, N_net, N_parc, preproc)

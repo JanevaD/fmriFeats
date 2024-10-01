@@ -11,7 +11,6 @@ import FunctionalFeatures
 
 def generate_Features(root, atlas_dict, N_net, N_parc, preproc):
     """
-    
     :param root: path to dataset directory 
     :type root: str
     :param atlas_dict_path: path to atlas dictionary
@@ -29,7 +28,6 @@ def generate_Features(root, atlas_dict, N_net, N_parc, preproc):
     """
      
     missing_files = []
-    idx = []
     functional_data= {}
     
     for sub in os.listdir(root):
@@ -37,28 +35,17 @@ def generate_Features(root, atlas_dict, N_net, N_parc, preproc):
         
         if os.path.isdir(sub_path) and sub.startswith("sub"):
         
-            print(f"Processing folder: {sub}")
-            print("-"*65)
             try:           
                 fmri_path = os.path.join(root, sub, "ses-V0", 'func', f'{sub}_ses-V0_task-rest_run-01_space-T1w_desc-{preproc}.nii.gz')
-                print(fmri_path)
-                print("-"*65)
+
                 atlas_path = os.path.join(root, sub, "masks", f'Schaefer2018_{N_parc}Parcels_{N_net}Networks_regrid.nii.gz')
-                print(atlas_path)
-                print("-"*65)
-     
                             
                 fmri = image.load_img(fmri_path)
                 atlas = image.load_img(atlas_path)
-                print(atlas.shape, fmri.shape )
-
                       
                 func_feats = FunctionalFeatures.getFunctionalFeatures(fmri, atlas, atlas_dict)
        
-                
-                
                 nident = int(sub.split('-')[-1]) 
-                
                 
                 
                 functional_data[nident] = {
@@ -72,9 +59,9 @@ def generate_Features(root, atlas_dict, N_net, N_parc, preproc):
                     'falff': func_feats['falff'],
                     }
                 
-                print(functional_data)
-                print("-"*65)
-                
+                print(func_feats['fcd'].shape)
+                print('-'*65)
+                print(func_feats['fcd'])
                 
             except FileNotFoundError:
                 print(f"File not found for subject {sub}, skipping...")
