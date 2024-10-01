@@ -27,7 +27,6 @@ def getFunctionalFeatures(fmri, atlas, atlas_dict):
     
     masker = input_data.NiftiLabelsMasker(atlas, standardize=True, detrend=True, t_r=tr)
     time_series = masker.fit_transform(fmri)
-    print(time_series)
     
     for i in range (time_series.shape[1]):
         variance = np.var(time_series[:,i])
@@ -35,7 +34,7 @@ def getFunctionalFeatures(fmri, atlas, atlas_dict):
             print("Error! Low Variance")
             
     unique_labels = np.unique(atlas.get_fdata())
-    print(unique_labels)
+
     label_names = []
     label_names = []
     for label_num in unique_labels: 

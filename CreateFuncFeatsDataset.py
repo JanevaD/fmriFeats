@@ -5,13 +5,11 @@ Created on Fri Sep 27 12:57:18 2024
 @author: danie
 """
 import os 
-from nilearn import image, input_data
-import pandas as pd
-import pickle
+from nilearn import image
 import FunctionalFeatures
 
 
-def generate_Features(root,atlas_dict_path,  N_net, N_parc, preproc):
+def generate_Features(root, atlas_dict, N_net, N_parc, preproc):
     """
     
     :param root: path to dataset directory 
@@ -32,38 +30,38 @@ def generate_Features(root,atlas_dict_path,  N_net, N_parc, preproc):
      
     missing_files = []
     idx = []
-    functional_dataset = {}
+    functional_data= {}
     
     for sub in os.listdir(root):
         sub_path = os.path.join(root, sub)
         
         if os.path.isdir(sub_path) and sub.startswith("sub"):
+        
             print(f"Processing folder: {sub}")
-  
+            print("-"*65)
             try:           
                 fmri_path = os.path.join(root, sub, "ses-V0", 'func', f'{sub}_ses-V0_task-rest_run-01_space-T1w_desc-{preproc}.nii.gz')
-        
+                print(fmri_path)
+                print("-"*65)
                 atlas_path = os.path.join(root, sub, "masks", f'Schaefer2018_{N_parc}Parcels_{N_net}Networks_regrid.nii.gz')
-      
-                atlas_dict_path = os.path.join(atlas_dict_path ,f'Schaefer_LUTS_P{N_parc}_N{N_net}.pkl')
-                
-           
-                
+                print(atlas_path)
+                print("-"*65)
+     
+                            
                 fmri = image.load_img(fmri_path)
                 atlas = image.load_img(atlas_path)
                 print(atlas.shape, fmri.shape )
-                
-                with open(atlas_dict_path, 'rb') as f:
-                   atlas_dict = pickle.load(f)
-                
+
                       
                 func_feats = FunctionalFeatures.getFunctionalFeatures(fmri, atlas, atlas_dict)
-    
+       
                 
                 
-                idx = int(sub.split('-')[-1]) 
+                nident = int(sub.split('-')[-1]) 
                 
-                functional_dataset[idx] = {
+                
+                
+                functional_data[nident] = {
                     'fc': func_feats['fc'],
                     'seg': func_feats['seg'],
                     'integ': func_feats['integ'],
@@ -73,18 +71,22 @@ def generate_Features(root,atlas_dict_path,  N_net, N_parc, preproc):
                     'alff': func_feats['alff'],
                     'falff': func_feats['falff'],
                     }
-                print(functional_dataset)
+                
+                print(functional_data)
+                print("-"*65)
                 
                 
             except FileNotFoundError:
                 print(f"File not found for subject {sub}, skipping...")
                 missing_files.append(sub)  
             except Exception as e:
+                import traceback
                 print(f"Error processing subject {sub}: {e}, skipping...")
+                traceback.print_exc()
                 missing_files.append(sub) 
         if missing_files:
             print(f"The following subjects had missing files: {missing_files}")
         else:
             print("All files were processed successfully.")
             
-    return (functional_dataset) 
+    return functional_data
