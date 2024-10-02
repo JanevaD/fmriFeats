@@ -38,14 +38,25 @@ functional_dataset = {
 root = 'D:\\fmri_preproc_fmap' 
 atlas_dict_p = 'C:\\Users\\danie\\phd\\pharmo-fmri\\scripts\\FunctionalFeatures\\LUTDict'
 
-preprocessing = ["AROMA_bold_gm", "preproc_bold_z_scored", "preproc_bold_masked_gm_intens", 
-                 "aparcaseg_dseg", "confounds_timeseries", "preproc_bold", "AROMA_bold", "brain_mask", "aseg_dseg", 
+preprocessing = ["AROMA_bold_gm",  "preproc_bold_masked_gm_intens", 
+                 "aparcaseg_dseg",  "preproc_bold", "AROMA_bold", "brain_mask", "aseg_dseg", 
                  "AROMAnonaggr_denoised_ROI", "AROMA_bold_gm_intens", "preproc_bold_masked_gm"]
 
 P_N = [[100, 7],[200, 7],[100, 17],[500, 17],[1000, 7],[1000, 17]]
 
 functional_datasets = LoopFmriprepOutput.loop_fmriprep_output(root, atlas_dict_p, P_N, preprocessing)
+
+#%%
+root = 'D:\\fmri_preproc_fmap' 
+atlas_dict_p = 'C:\\Users\\danie\\phd\\pharmo-fmri\\scripts\\FunctionalFeatures\\LUTDict'
+
+preprocessing = [  "preproc_bold"]
+
+P_N = [[1000, 7]]
+
+functional_datasets = LoopFmriprepOutput.loop_fmriprep_output(root, atlas_dict_p, P_N, preprocessing)
          
+       
     
          
 #%%

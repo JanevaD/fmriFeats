@@ -12,11 +12,11 @@ import os
 import CreateFuncFeatsDataset
 
 
-def loop_fmriprep_output(root,atlas_dict_path, P_N, preprocessing):
+def loop_fmriprep_output(root,atlas_dict_p, P_N, preprocessing):
     
     functional_datasets = []
     for N_parc, N_net in P_N: 
-        atlas_dict_path = os.path.join(atlas_dict_path,f'Schaefer_LUTS_P{N_parc}_N{N_net}.pkl')
+        atlas_dict_path = os.path.join(atlas_dict_p,f'Schaefer_LUTS_P{N_parc}_N{N_net}.pkl')
     
         with open(atlas_dict_path, 'rb') as f:
             atlas_dict = pickle.load(f)
@@ -41,7 +41,7 @@ def loop_fmriprep_output(root,atlas_dict_path, P_N, preprocessing):
             except Exception as e:
                 print(f"Error processing P={N_parc}, N={N_net}, preprocessing={preproc}: {e}")
            
-            return functional_datasets    
+    return functional_datasets    
          
     
          
