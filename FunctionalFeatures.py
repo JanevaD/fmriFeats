@@ -25,7 +25,7 @@ def getFunctionalFeatures(fmri, atlas, atlas_dict):
     """  
     
     tr = 3.6
-    threshlold_variance = 0.01
+    threshlold_variance = 0.0001
     
     masker = input_data.NiftiLabelsMasker(atlas, standardize=True, detrend=True, t_r=tr)
     time_series = masker.fit_transform(fmri)

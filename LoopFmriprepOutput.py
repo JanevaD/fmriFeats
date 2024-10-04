@@ -22,6 +22,7 @@ def loop_fmriprep_output(root,atlas_dict_p, P_N, preprocessing):
             atlas_dict = pickle.load(f)
        
         for preproc in preprocessing: 
+            print ('='*65)
             print(f'Processing functional files P={N_parc}, N={N_net}, preprocessing={preproc}:')
             print ('='*65)
             try:
@@ -35,12 +36,18 @@ def loop_fmriprep_output(root,atlas_dict_p, P_N, preprocessing):
                 functional_datasets.append(functional_dataset)
                 
             except CreateFuncFeatsDataset.NoFeatures as e: 
+                print ('='*65)
                 print(f"Can't generate feaures for desc-{preproc} output: {e} ")
+                print ('='*65)
+
                 continue
                
             except Exception as e:
+                print ('='*65)
                 print(f"Error processing P={N_parc}, N={N_net}, preprocessing={preproc}: {e}")
-           
+                print ('='*65)
+
+
     return functional_datasets    
          
     
