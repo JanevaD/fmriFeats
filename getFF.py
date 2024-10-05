@@ -56,18 +56,19 @@ def get_fc_seg_integ(time_series):
  
     for network in networks:        
         columns = [col for col in fc.columns if f'_{network}' in col]
-        num_columns = len(columns)
+        num_columns = int(len(columns))
         
         seg_fc  = fc.copy()
         seg_fc = seg_fc.loc[columns,columns].sum().sum()
-        seg_fcs.append(seg_fc/num_columns)
+        seg_fcs.append(seg_fc/(num_columns*num_columns))
  
         integ_fc = fc.copy()
         integ_fc.loc[columns,columns]=0
         
         integ_fc = integ_fc.loc[columns,::].sum().sum()
-        integ_fcs.append(integ_fc/(np.array(fc.shape[1])-num_columns))
-
+        i_n = (np.array(fc.shape[1])-num_columns)
+        integ_fcs.append(integ_fc/i_n*i_n)
+        
 
     seg_fcs = pd.Series(seg_fcs,index = list(networks))
     integ_fcs = pd.Series(integ_fcs, index = list(networks))
