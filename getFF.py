@@ -60,6 +60,7 @@ def get_fc_seg_integ(time_series):
         
         seg_fc  = fc.copy()
         seg_fc = seg_fc.loc[columns,columns].sum().sum()
+
         seg_fcs.append(seg_fc/(num_columns*num_columns))
  
         integ_fc = fc.copy()
@@ -67,7 +68,7 @@ def get_fc_seg_integ(time_series):
         
         integ_fc = integ_fc.loc[columns,::].sum().sum()
         i_n = (np.array(fc.shape[1])-num_columns)
-        integ_fcs.append(integ_fc/i_n*i_n)
+        integ_fcs.append(integ_fc/(i_n*i_n))
         
 
     seg_fcs = pd.Series(seg_fcs,index = list(networks))
