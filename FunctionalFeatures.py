@@ -25,11 +25,11 @@ def getFunctionalFeatures(fmri, atlas, atlas_dict):
     """  
     
     tr = 3.6
-    threshlold_variance = 0.0001
+    threshlold_variance = 0.001
     
     masker = input_data.NiftiLabelsMasker(atlas, standardize=True, detrend=True, t_r=tr)
     time_series = masker.fit_transform(fmri)
-    
+
     for i in range (time_series.shape[1]):
         variance = np.var(time_series[:,i])
         if variance < threshlold_variance:
@@ -43,7 +43,7 @@ def getFunctionalFeatures(fmri, atlas, atlas_dict):
             label_names.append(atlas_dict[label_num])
         else: 
             label_names.append("Nan")
-    
+      
     time_series = pd.DataFrame(time_series, columns=label_names[1:])
     time_series = time_series.filter(like = "Networks", axis = 1)
     fc = getFF.get_fc(time_series)

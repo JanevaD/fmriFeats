@@ -17,14 +17,16 @@ def loop_fmriprep_output(root,atlas_dict_p, P_N, preprocessing):
     functional_datasets = []
     for N_parc, N_net in P_N: 
         atlas_dict_path = os.path.join(atlas_dict_p,f'Schaefer_LUTS_P{N_parc}_N{N_net}.pkl')
-    
+   
+        
         with open(atlas_dict_path, 'rb') as f:
             atlas_dict = pickle.load(f)
-       
+
+            
         for preproc in preprocessing: 
             print ('='*65)
             print(f'Processing functional files P={N_parc}, N={N_net}, preprocessing={preproc}:')
-            print ('='*65)
+
             try:
                 functional_dataset = {
                     "Networks": N_net,

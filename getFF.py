@@ -120,7 +120,7 @@ def get_falff(time_series, tr):
     falffs = []
     
     for i in range (time_series.shape[1]): 
-        detrended = sp.signal.detrend(time_series.iloc[i])
+        detrended = sp.signal.detrend(time_series.iloc[:,i])
         f, Pxx = sp.signal.welch(detrended, fs=1/tr, nperseg = 64)
    
         low_freq_indices = np.where((f >= 0.01) & (f <= 0.08))
