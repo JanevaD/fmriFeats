@@ -56,9 +56,9 @@ def generate_Features(root, atlas_dict, N_net, N_parc, preproc):
                     'fc': func_feats['fc'],
                     'seg': func_feats['seg'],
                     'integ': func_feats['integ'],
-                    'fc_stream': func_feats['fc_stream'],
-                    'fcs_var': func_feats['fcs_var'],
-                    'fcd': func_feats['fcd'],
+                   # 'fc_stream': func_feats['fc_stream'],
+                  #  'fcs_var': func_feats['fcs_var'],
+                  #  'fcd': func_feats['fcd'],
                     'alff': func_feats['alff'],
                     'falff': func_feats['falff'],
                     }

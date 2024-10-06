@@ -24,7 +24,7 @@ def get_fc(time_series):
     correlation_matrix = correlation_measure.fit_transform([time_series.values])[0]
     
     fc = pd.DataFrame(correlation_matrix, columns= time_series.columns, index = time_series.columns)
-    names = ['_'.join(name.split('_')[1:3]) for name in fc.columns]
+    names = ['_'.join(name.split('_')[2:3]) for name in fc.columns]
     fc.columns = names
     fc.index = names
     
@@ -46,27 +46,30 @@ def get_fc_seg_integ(time_series):
     correlation_matrix = correlation_measure.fit_transform([time_series.values])[0]
     
     fc = pd.DataFrame(correlation_matrix, columns= time_series.columns, index = time_series.columns)
-    names = ['_'.join(name.split('_')[1:3]) for name in fc.columns]
+    names = ['_'.join(name.split('_')[2:3]) for name in fc.columns]
     fc.columns = names
     fc.index = names
     
+    
     seg_fcs =[]
     integ_fcs=[]
-    networks = set([name.split('_')[1] for name in names]) 
- 
+    networks = set(names) 
+    
     for network in networks:        
-        columns = [col for col in fc.columns if f'_{network}' in col]
-        num_columns = int(len(columns))
         
+        num_columns = int(len([col for col in fc.columns if col == network]))
+        
+       
         seg_fc  = fc.copy()
-        seg_fc = seg_fc.loc[columns,columns].sum().sum()
-
+               
+        seg_fc = seg_fc.loc[network,network].sum().sum()
+        
         seg_fcs.append(seg_fc/(num_columns*num_columns))
  
         integ_fc = fc.copy()
-        integ_fc.loc[columns,columns]=0
+        integ_fc.loc[network,network]=0
         
-        integ_fc = integ_fc.loc[columns,::].sum().sum()
+        integ_fc = integ_fc.loc[network,::].sum().sum()
         i_n = (np.array(fc.shape[1])-num_columns)
         integ_fcs.append(integ_fc/(i_n*i_n))
         

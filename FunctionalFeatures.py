@@ -48,7 +48,8 @@ def getFunctionalFeatures(fmri, atlas, atlas_dict):
     time_series = time_series.filter(like = "Networks", axis = 1)
     fc = getFF.get_fc(time_series)
     seg, integ = getFF.get_fc_seg_integ(time_series)
-    fc_stream, fcs_var, fcd = getFF.get_dfc_feats(time_series)
+    #fc_stream, fcs_var, fcd = getFF.get_dfc_feats(time_series)
+    __, fcs_var, __ = getFF.get_dfc_feats(time_series)
     alff, falff = getFF.get_falff(time_series, tr = tr)
 
     func_feats = {
@@ -56,9 +57,9 @@ def getFunctionalFeatures(fmri, atlas, atlas_dict):
           'fc': fc,
           'seg': seg,
           'integ': integ,
-          'fc_stream': fc_stream,
+         # 'fc_stream': fc_stream,
           'fcs_var': fcs_var,
-          'fcd': fcd,
+         # 'fcd': fcd,
           'alff': alff,
           'falff': falff
           

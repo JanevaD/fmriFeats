@@ -37,7 +37,7 @@ atlas_dict_p = 'C:\\Users\\danie\\phd\\pharmo-fmri\\scripts\\FunctionalFeatures\
 
 preprocessing = [ 'AROMA_bold_no_mask']
 
-P_N = [[1000, 17]]
+P_N = [[100,7],[200,17]]
 
 functional_datasets = LoopFmriprepOutput.loop_fmriprep_output(root, atlas_dict_p, P_N, preprocessing)
          
