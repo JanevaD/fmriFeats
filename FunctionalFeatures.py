@@ -8,9 +8,7 @@ class LowVarianceError(Exception):
     pass
 
 import numpy as np
-import scipy as sp
-from nilearn import image, masking, input_data
-from nilearn.connectome import ConnectivityMeasure
+from nilearn import  input_data
 import pandas as pd
 import getFF
 
@@ -48,21 +46,19 @@ def getFunctionalFeatures(fmri, atlas, atlas_dict):
     time_series = time_series.filter(like = "Networks", axis = 1)
     fc = getFF.get_fc(time_series)
     seg, integ = getFF.get_fc_seg_integ(time_series)
-    #fc_stream, fcs_var, fcd = getFF.get_dfc_feats(time_series)
-    __, fcs_var, __ = getFF.get_dfc_feats(time_series)
+    fcs_var, dfcs_mean_segs, dfcs_mean_integs, fcd_var = getFF.get_dfc_feats(time_series)
     alff, falff = getFF.get_falff(time_series, tr = tr)
 
     func_feats = {
-        
           'fc': fc,
           'seg': seg,
           'integ': integ,
-         # 'fc_stream': fc_stream,
-          'fcs_var': fcs_var,
-         # 'fcd': fcd,
+          'fcs_var': fcs_var, 
+          'dfcs_mean_segs': dfcs_mean_segs,
+          'dfcs_mean_integs': dfcs_mean_integs,
+          'fcd_var': dfcs_mean_integs,
           'alff': alff,
           'falff': falff
-          
           }
     
     return func_feats

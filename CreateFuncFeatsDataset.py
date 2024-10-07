@@ -28,7 +28,6 @@ def generate_Features(root, atlas_dict, N_net, N_parc, preproc):
     :param out: output directory
     :type out: str
 
-
     """
      
     missing_files = []
@@ -49,16 +48,16 @@ def generate_Features(root, atlas_dict, N_net, N_parc, preproc):
                 atlas = image.load_img(atlas_path)
                       
                 func_feats = FunctionalFeatures.getFunctionalFeatures(fmri, atlas, atlas_dict)
-       
                 nident = int(sub.split('-')[-1]) 
                                 
                 functional_data[nident] = {
                     'fc': func_feats['fc'],
                     'seg': func_feats['seg'],
-                    'integ': func_feats['integ'],
-                   # 'fc_stream': func_feats['fc_stream'],
-                  #  'fcs_var': func_feats['fcs_var'],
-                  #  'fcd': func_feats['fcd'],
+                    'integ': func_feats['integ'],           
+                    'fcs_var': func_feats['fcs_var'], 
+                    'dfcs_mean_segs': func_feats['dfcs_mean_segs'],
+                    'dfcs_mean_integs': func_feats['dfcs_mean_integs'],
+                    'fcd_var': func_feats['fcd_var'],
                     'alff': func_feats['alff'],
                     'falff': func_feats['falff'],
                     }
