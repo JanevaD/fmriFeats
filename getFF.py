@@ -30,7 +30,7 @@ def get_fc(time_series):
     
     return fc
 
-def get_fc_seg_integ_wb(time_series):
+def get_fc_seg_integ(time_series):
     """
     Function to calculate FC Segregation and Integration of Whole Brain Networks
     
@@ -46,7 +46,7 @@ def get_fc_seg_integ_wb(time_series):
     correlation_matrix = correlation_measure.fit_transform([time_series.values])[0]
     
     fc = pd.DataFrame(correlation_matrix, columns= time_series.columns, index = time_series.columns)
-    names = ['_'.join(name.split('_')[2:3]) for name in fc.columns]
+    names = ['_'.join(name.split('_')[1:3]) for name in fc.columns]
     fc.columns = names
     fc.index = names
     
@@ -89,7 +89,7 @@ def get_dfc_feats(time_series,L=15, S=2):
     :rtype: TYPE
     """
  
-    names = ['_'.join(name.split('_')[2:3]) for name in time_series.columns]
+    names = ['_'.join(name.split('_')[1:3]) for name in time_series.columns]
     networks = set(names)
     
     fc_stream =[]
@@ -98,22 +98,21 @@ def get_dfc_feats(time_series,L=15, S=2):
     for i in range (0, M-S, S):
         correlation_measure = ConnectivityMeasure(kind='correlation')
         dfc = correlation_measure.fit_transform([time_series[i:i+L].values])[0]
-        dfcs.append[dfc]
-        dfc = np.tril(dfc, k=-1).flatten()
-        dfc = dfc[dfc!=0] 
-        fc_stream.append(dfc)    
-        
-       
+        dfcs.append(dfc)
+        dfc_t = np.tril(dfc, k=-1).flatten()
+        fc_stream.append(dfc_t)    
     
-    dfcs = np.array(dfcs); dfcs_mean = np.mean(dfcs)
-    print(dfcs.shape)     
-    dfcs_mean = pd.DataFrame(dfcs_mean, index=time_series.columns, columns = time_series.columns)
-    
+    dfcs = np.array(dfcs)   
+    dfcs_mean = np.mean(dfcs,axis = 0)
+
+    dfcs_mean = pd.DataFrame(dfcs_mean, index=names, columns = names)
+
     dfcs_mean_segs=[]
     dfcs_mean_integs=[]
+    
     for network in networks:        
         
-        num_columns = int(len([col for col in dfcs.columns if col == network]))
+        num_columns = int(len([col for col in names if col == network]))
         
         dfcs_mean_seg  = dfcs_mean.copy()
         dfcs_mean_seg = dfcs_mean_seg.loc[network,network].sum().sum()
