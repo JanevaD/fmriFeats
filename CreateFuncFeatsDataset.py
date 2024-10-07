@@ -51,6 +51,7 @@ def generate_Features(root, atlas_dict, N_net, N_parc, preproc):
                 nident = int(sub.split('-')[-1]) 
                                 
                 functional_data[nident] = {
+                    
                     'fc': func_feats['fc'],
                     'seg': func_feats['seg'],
                     'integ': func_feats['integ'],           
@@ -58,9 +59,14 @@ def generate_Features(root, atlas_dict, N_net, N_parc, preproc):
                     'dfcs_mean_segs': func_feats['dfcs_mean_segs'],
                     'dfcs_mean_integs': func_feats['dfcs_mean_integs'],
                     'fcd_var': func_feats['fcd_var'],
+                    'fcd_mean': func_feats['fcd_mean'],
+                    'fcd_vars': func_feats['fcd_vars'], 
+                    'fcd_means': func_feats['fcd_means'],
                     'alff': func_feats['alff'],
                     'falff': func_feats['falff'],
+                    
                     }
+   
                 
             except FunctionalFeatures.LowVarianceError as e:
                 raise NoFeatures(f"No features: {e}")
