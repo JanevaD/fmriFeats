@@ -30,9 +30,9 @@ def get_fc(time_series):
     
     return fc
 
-def get_fc_seg_integ(time_series):
+def get_fc_seg_integ_wb(time_series):
     """
-    Function to calculate FC Segregation and Integration 
+    Function to calculate FC Segregation and Integration of Whole Brain Networks
     
     :param fc: functional connectivity
     :type fc: DataFrame
@@ -59,11 +59,8 @@ def get_fc_seg_integ(time_series):
         
         num_columns = int(len([col for col in fc.columns if col == network]))
         
-       
         seg_fc  = fc.copy()
-               
         seg_fc = seg_fc.loc[network,network].sum().sum()
-        
         seg_fcs.append(seg_fc/(num_columns*num_columns))
  
         integ_fc = fc.copy()
@@ -80,7 +77,7 @@ def get_fc_seg_integ(time_series):
     return seg_fcs, integ_fcs   
 
 
-def get_dfc_feats (time_series,L=15, S=2):
+def get_dfc_feats(time_series,L=15, S=2):
     """    
     :param time_series: Regional BOLD 
     :type time_series: DataFrame
@@ -90,23 +87,56 @@ def get_dfc_feats (time_series,L=15, S=2):
     :type S: int 
     :return: functional connectivity stream, stream variance and fcd
     :rtype: TYPE
-
     """
+ 
+    names = ['_'.join(name.split('_')[2:3]) for name in time_series.columns]
+    networks = set(names)
     
     fc_stream =[]
+    dfcs = []
     M = len(time_series)
     for i in range (0, M-S, S):
         correlation_measure = ConnectivityMeasure(kind='correlation')
         dfc = correlation_measure.fit_transform([time_series[i:i+L].values])[0]
+        dfcs.append[dfc]
         dfc = np.tril(dfc, k=-1).flatten()
         dfc = dfc[dfc!=0] 
-        fc_stream.append(dfc)        
+        fc_stream.append(dfc)    
         
-    fc_stream= np.stack(fc_stream)
-    fcs_var = np.var(fc_stream)
-    fcd = np.corrcoef(fc_stream)
+       
     
-    return fc_stream, fcs_var, fcd
+    dfcs = np.array(dfcs); dfcs_mean = np.mean(dfcs)
+    print(dfcs.shape)     
+    dfcs_mean = pd.DataFrame(dfcs_mean, index=time_series.columns, columns = time_series.columns)
+    
+    dfcs_mean_segs=[]
+    dfcs_mean_integs=[]
+    for network in networks:        
+        
+        num_columns = int(len([col for col in dfcs.columns if col == network]))
+        
+        dfcs_mean_seg  = dfcs_mean.copy()
+        dfcs_mean_seg = dfcs_mean_seg.loc[network,network].sum().sum()
+        dfcs_mean_segs.append(dfcs_mean_seg/(num_columns*num_columns))
+ 
+        dfcs_mean_integ = dfcs_mean.copy()
+        dfcs_mean_integ.loc[network,network]=0
+        
+        dfcs_mean_integ = dfcs_mean_integ.loc[network,::].sum().sum()
+        i_n = (np.array(dfcs_mean.shape[1])-num_columns)
+        dfcs_mean_integs.append(dfcs_mean_integ /(i_n*i_n))
+        
+
+    dfcs_mean_segs = pd.Series(dfcs_mean_segs,index = list(networks))
+    dfcs_mean_integs = pd.Series(dfcs_mean_integs, index = list(networks))
+    
+    
+    fc_stream= np.stack(fc_stream); fcs_var = np.var(fc_stream)
+    fcd = np.corrcoef(fc_stream)
+    fcd_var = np.var(np.triu(fcd, k=L-S).flatten())
+    
+    return fcs_var, dfcs_mean_segs, dfcs_mean_integs, fcd_var
+
 
 def get_falff(time_series, tr):
     

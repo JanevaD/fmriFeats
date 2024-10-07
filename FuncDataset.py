@@ -104,8 +104,8 @@ for dataset in  functional_datasets:
     Q3 = SegInteg['Value'].quantile(0.75)
     IQR = Q3 - Q1
 
-    lower_bound = Q1 - 1.5 * IQR
-    upper_bound = Q3 + 1.5 * IQR
+    lower_bound = Q1 - 0.5 * IQR
+    upper_bound = Q3 + 0.5 * IQR
 
     filtered_data = SegInteg[(SegInteg['Value'] >= lower_bound) & (SegInteg['Value'] <= upper_bound)]
 
@@ -197,6 +197,129 @@ for dataset in  functional_datasets:
     axes[0].get_legend().remove()
     axes[1].get_legend().remove()
     axes[2].get_legend().remove()
+    fig.suptitle(f"{N_n} Networks {N_p} Parcelations {preproc}")
+    plt.tight_layout()  
+    plt.show()
+
+#%%
+for dataset in  functional_datasets:
+    
+    N_n = dataset["Networks"]
+    N_p = dataset["Parcellations"]
+    preproc = dataset["preprocessing"]
+    
+    print(N_n, N_p)
+    print("="*65)
+
+    nident = []
+    seg = pd.DataFrame()
+    integ = pd.DataFrame() 
+    for i, key in enumerate(dataset["data"].keys()):
+        
+        nident.append(key)
+
+        seg = pd.concat([seg,pd.DataFrame(dataset['data'][key]['falff'])],axis =1)
+        integ = pd.concat([integ,pd.DataFrame(dataset['data'][key]['alff'])],axis = 1)
+        networks = dataset['data'][key]['fc'].index
+       
+    seg = seg.T
+    integ = integ.T    
+    seg.columns = networks; integ.columns = networks;
+    
+    seg= seg.groupby(seg.columns, axis=1).mean()
+    integ= integ.groupby(integ.columns, axis=1).mean()
+
+    
+    seg.reset_index(drop = True, inplace = True); seg.set_index(np.array(nident), inplace = True)
+    integ.reset_index(drop = True, inplace = True); integ.set_index(np.array(nident), inplace = True)
+    
+    
+    print (seg.head())
+    print("-"*65)
+    print(integ.head())
+    print("-"*65)
+
+    seg_class = seg.merge(results[['Clusters']], left_index=True, right_index=True, how = 'inner')
+    integ_class = integ.merge(results[['Clusters']], left_index=True, right_index = True, how ='inner')
+
+    features_seg = pd.melt(seg_class, id_vars='Clusters', var_name = 'Feature', value_name = 'Value')
+    features_integ = pd.melt(integ_class, id_vars='Clusters', var_name = 'Feature', value_name = 'Value')
+    ratio = features_seg['Value']/features_integ['Value']
+        
+    SegInteg = features_seg.copy() 
+    SegInteg['Value'] = ratio
+    
+    Q1 = SegInteg['Value'].quantile(0.25)
+    Q3 = SegInteg['Value'].quantile(0.75)
+    IQR = Q3 - Q1
+
+    lower_bound = Q1 - 0.5 * IQR
+    upper_bound = Q3 + 0.5 * IQR
+
+    filtered_data = SegInteg[(SegInteg['Value'] >= lower_bound) & (SegInteg['Value'] <= upper_bound)]
+
+    fig, axes = plt.subplots(2,1, figsize = (16,8))
+
+    colors = ['#FF0101','#0E0EFF']
+
+    sns.stripplot(
+        x='Feature', y='Value', hue='Clusters',
+      #  kind='strip',  
+        data = features_seg,
+        palette=colors,
+        dodge = True,
+        size = 4,
+        alpha = 0.6,
+        ax=axes[0],
+    )
+
+    sns.boxplot(
+        x='Feature', y='Value', hue='Clusters',
+        data = features_seg,
+        palette=colors,
+     #   gap = 0.5,
+        dodge=True,
+        boxprops=dict(facecolor="none") , 
+      #  width = 0.3,
+        ax=axes[0],
+    )
+
+    _ = [label.set_rotation(30) or label.set_ha('right') for label in axes[0].get_xticklabels()]
+
+    axes[0].set_title('Falff by Cluster')
+
+    sns.stripplot(
+        x='Feature', y='Value', hue='Clusters',
+        #kind='strip',  
+        data=features_integ,
+        palette=colors,
+        ax=axes[1],
+        size = 3,
+        alpha = 0.6,
+        dodge = True,
+        #legend=False
+    )
+
+    sns.boxplot(
+        x='Feature', y='Value', hue='Clusters',
+        data=features_integ,
+        palette=colors,
+        boxprops=dict(facecolor="none")  ,
+        dodge = True,
+        ax = axes[1],
+       # width = 0.3,
+        #gap = 0.4,    
+    )
+
+    _ = [label.set_rotation(30) or label.set_ha('right') for label in axes[1].get_xticklabels()]
+
+    axes[1].set_title('Alff by Cluster')
+
+
+
+
+    axes[0].get_legend().remove()
+    axes[1].get_legend().remove()
     fig.suptitle(f"{N_n} Networks {N_p} Parcelations {preproc}")
     plt.tight_layout()  
     plt.show()
