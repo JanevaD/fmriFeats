@@ -24,7 +24,7 @@ def get_fc(time_series):
     correlation_matrix = correlation_measure.fit_transform([time_series.values])[0]
     
     fc = pd.DataFrame(correlation_matrix, columns= time_series.columns, index = time_series.columns)
-    names = ['_'.join(name.split('_')[1:3]) for name in fc.columns]
+    names = ['_'.join(name.split('_')[2:3]) for name in fc.columns]
     fc.columns = names
     fc.index = names
     
@@ -46,7 +46,7 @@ def get_fc_seg_integ(time_series):
     correlation_matrix = correlation_measure.fit_transform([time_series.values])[0]
     
     fc = pd.DataFrame(correlation_matrix, columns= time_series.columns, index = time_series.columns)
-    names = ['_'.join(name.split('_')[1:3]) for name in fc.columns]
+    names = ['_'.join(name.split('_')[2:3]) for name in fc.columns]
     fc.columns = names
     fc.index = names
     
@@ -89,7 +89,7 @@ def get_dfc_feats(time_series,L=15, S=2):
     :rtype: TYPE
     """
  
-    names = ['_'.join(name.split('_')[1:3]) for name in time_series.columns]
+    names = ['_'.join(name.split('_')[2:3]) for name in time_series.columns]
     networks = set(names)
     
     fc_stream =[]
@@ -124,13 +124,9 @@ def get_dfc_feats(time_series,L=15, S=2):
         dfcs_mean_integ = dfcs_mean_integ.loc[network,::].sum().sum()
         i_n = (np.array(dfcs_mean.shape[1])-num_columns)
         dfcs_mean_integs.append(dfcs_mean_integ /(i_n*i_n))
-        
-        
-        
 
     dfcs_mean_segs = pd.Series(dfcs_mean_segs,index = list(networks))
     dfcs_mean_integs = pd.Series(dfcs_mean_integs, index = list(networks))
-    
     
     fc_stream= np.stack(fc_stream); fcs_var = np.var(fc_stream)
     fcd = np.corrcoef(fc_stream)
@@ -151,20 +147,21 @@ def get_fluidity_feats(time_series,L=15, S=2):
     :return: functional connectivity stream, stream variance and fcd
     :rtype: TYPE
     """
- 
-    names = ['_'.join(name.split('_')[1:3]) for name in time_series.columns]
+    names = ['_'.join(name.split('_')[2:3]) for name in time_series.columns]
     networks = set(names)
     time_series.columns = names
-    print( time_series.columns)
     fc_stream =[]
     fcd_vars = []
     fcd_means = []
     M = len(time_series)
+    
     for network in networks:
+        fc_stream =[]
+        print (network)
         for i in range (0, M-S, S):
             correlation_measure = ConnectivityMeasure(kind='correlation')
             dfc = correlation_measure.fit_transform([np.array(time_series.loc[:,network].iloc[i:i+L].values)])[0]
-            dfc_t = np.tril(dfc, k=-1).flatten()
+            dfc_t = np.tril(dfc, k=M-S).flatten()
             fc_stream.append(dfc_t)    
         fcd = np.corrcoef(fc_stream)
         fcd_vars.append(np.var(np.triu(fcd, k=L-S).flatten()))
