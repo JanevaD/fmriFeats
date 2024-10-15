@@ -24,6 +24,7 @@ import scipy.stats as st
 root = 'D:\\fmri_preproc_fmap' 
 atlas_dict_p = 'C:\\Users\\danie\\phd\\pharmo-fmri\\scripts\\FunctionalFeatures\\LUTDict'
 
+
 preprocessing = ["AROMA_bold_gm",  "preproc_bold_masked_gm_intens", 
                  "aparcaseg_dseg",  "preproc_bold", "AROMA_bold", "brain_mask", "aseg_dseg", 
                  "AROMAnonaggr_denoised_ROI", "AROMA_bold_gm_intens", "preproc_bold_masked_gm"]
@@ -34,12 +35,17 @@ functional_datasets = LoopFmriprepOutput.loop_fmriprep_output(root, atlas_dict_p
 
 #%%
 root = 'D:\\fmri_preproc_fmap' 
-atlas_dict_p = 'C:\\Users\\danie\\phd\\pharmo-fmri\\scripts\\FunctionalFeatures\\LUTDict'
+atlas_dict_p = 'C:\\Users\\danie\\phd\\pharmo-fmri\\fromgithub\\fmriFeats\\LUTDict'
 
-preprocessing = [ 'AROMA_bold_no_mask']
+preprocessing = ['AROMA_bold_no_mask']
+
+confound_vars = ['global_signal', 'csf', 'white_matter']
+
+derivative_columns = ['{}_derivative1'.format(c) for c in confound_vars]
+final_confounds = confound_vars + derivative_columns
 
 P_N = [[100,7]]
-functional_datasets= LoopFmriprepOutput.loop_fmriprep_output(root, atlas_dict_p, P_N, preprocessing)
+functional_datasets= LoopFmriprepOutput.loop_fmriprep_output(root, atlas_dict_p, P_N, preprocessing, final_confounds)
          
        
 
@@ -60,7 +66,7 @@ feature_list = ['seg','integ','fcs_var','dfcs_mean_segs', 'dfcs_mean_integs','fc
 results = pd.read_csv('C:/Users/danie/phd/pharmo-fmri/results 30/Results k=2.csv')
 
 #%% 
-for dataset in  functional_datasets_h:
+for dataset in  functional_datasets:
     
     N_n = dataset["Networks"]
     N_p = dataset["Parcellations"]

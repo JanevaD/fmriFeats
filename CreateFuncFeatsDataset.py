@@ -11,9 +11,9 @@ class NoFeatures(Exception):
 import os 
 from nilearn import image
 import FunctionalFeatures
+import pandas as pd
 
-
-def generate_Features(root, atlas_dict, N_net, N_parc, preproc):
+def generate_Features(root, atlas_dict, N_net, N_parc, preproc, selected_confounds):
     """
     :param root: path to dataset directory 
     :type root: str
@@ -29,7 +29,7 @@ def generate_Features(root, atlas_dict, N_net, N_parc, preproc):
     :type out: str
 
     """
-     
+    
     missing_files = []
     functional_data= {}
     
@@ -43,11 +43,17 @@ def generate_Features(root, atlas_dict, N_net, N_parc, preproc):
                 print("-"*65)
                 fmri_path = os.path.join(root, sub, "ses-V0", 'func', f'{sub}_ses-V0_task-rest_run-01_space-T1w_desc-{preproc}.nii.gz')
                 atlas_path = os.path.join(root, sub, "masks", f'Schaefer2018_{N_parc}Parcels_{N_net}Networks_regrid.nii.gz')
+                confounds_path = os.path.join(root, sub, "ses-V0", 'func', f'{sub}_ses-V0_task-rest_run-01_desc-confounds_timeseries.tsv')
                             
                 fmri = image.load_img(fmri_path)
+                fmri = fmri.slicer[:,:,:,1:]
                 atlas = image.load_img(atlas_path)
+                confounds_timeseries =  pd.read_csv(confounds_path, sep='\t')
+                confounds = confounds_timeseries[selected_confounds]
+                confounds = confounds.loc[1:]
+                confounds = confounds.values
                       
-                func_feats = FunctionalFeatures.getFunctionalFeatures(fmri, atlas, atlas_dict)
+                func_feats = FunctionalFeatures.getFunctionalFeatures(fmri, atlas, atlas_dict, confounds, sub)
                 nident = int(sub.split('-')[-1]) 
                                 
                 functional_data[nident] = {
@@ -64,10 +70,8 @@ def generate_Features(root, atlas_dict, N_net, N_parc, preproc):
                     'fcd_means': func_feats['fcd_means'],
                     'alff': func_feats['alff'],
                     'falff': func_feats['falff'],
-                    
                     }
    
-                
             except FunctionalFeatures.LowVarianceError as e:
                 raise NoFeatures(f"No features: {e}")
                 

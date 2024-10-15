@@ -5,14 +5,12 @@ Created on Mon Sep 30 17:57:13 2024
 @author: danie
 """
 
-
- 
 import pickle
 import os
 import CreateFuncFeatsDataset
 
 
-def loop_fmriprep_output(root,atlas_dict_p, P_N, preprocessing):
+def loop_fmriprep_output(root,atlas_dict_p, P_N, preprocessing, selected_confounds):
     
     functional_datasets = []
     for N_parc, N_net in P_N: 
@@ -32,8 +30,8 @@ def loop_fmriprep_output(root,atlas_dict_p, P_N, preprocessing):
                     "Networks": N_net,
                     "Parcellations": N_parc,
                     "preprocessing": preproc,
-                    "data": CreateFuncFeatsDataset.generate_Features(root, atlas_dict, N_net, N_parc, preproc)[0],
-                    "missing_files":  CreateFuncFeatsDataset.generate_Features(root, atlas_dict, N_net, N_parc, preproc)[1]
+                    "data": CreateFuncFeatsDataset.generate_Features(root, atlas_dict, N_net, N_parc, preproc, selected_confounds)[0],
+                    "missing_files":  CreateFuncFeatsDataset.generate_Features(root, atlas_dict, N_net, N_parc, preproc, selected_confounds)[1]
                     }
                 functional_datasets.append(functional_dataset)
                 
@@ -51,9 +49,3 @@ def loop_fmriprep_output(root,atlas_dict_p, P_N, preprocessing):
 
 
     return functional_datasets    
-         
-    
-         
-    
-
-

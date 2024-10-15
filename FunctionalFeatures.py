@@ -11,10 +11,11 @@ import numpy as np
 from nilearn import  input_data
 import pandas as pd
 import getFF
+import nilearn as nil
+import matplotlib.pyplot as plt
 
 
-
-def getFunctionalFeatures(fmri, atlas, atlas_dict):
+def getFunctionalFeatures(fmri, atlas, atlas_dict, confounds, sub):
     """
           A function that extracts functional features based on fmri data and atlas parcelations:
               image: 4D fmri Data
@@ -26,8 +27,14 @@ def getFunctionalFeatures(fmri, atlas, atlas_dict):
     threshlold_variance = 0.001
     
     masker = input_data.NiftiLabelsMasker(atlas, standardize=True, detrend=True, t_r=tr)
-    time_series = masker.fit_transform(fmri)
-
+    
+    denoised_fmri = nil.image.clean_img(fmri, confounds=confounds, detrend=True, standardize='zscore_sample', t_r=tr, mask=masker)
+    time_series= masker.fit_transform(denoised_fmri)
+    
+    nil.plotting.plot_carpet(denoised_fmri, atlas, t_r=tr, title = f'BOLD carpet plot for {sub}  ')
+    # Save the carpet plot to the specified path
+    plt.savefig(f'{sub}_carpet_plot.png')
+    
     for i in range (time_series.shape[1]):
         variance = np.var(time_series[:,i])
         if variance < threshlold_variance:
@@ -65,13 +72,4 @@ def getFunctionalFeatures(fmri, atlas, atlas_dict):
           'falff': falff
           }
     
-    return func_feats
-    
-
-
-
-                
-
-     
-    
-    
+    return func_feats           
