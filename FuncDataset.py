@@ -34,6 +34,7 @@ P_N = [[100, 7],[200, 7],[100, 17],[500, 17],[1000, 7],[1000, 17]]
 functional_datasets = LoopFmriprepOutput.loop_fmriprep_output(root, atlas_dict_p, P_N, preprocessing)
 #%%
 atlas_dict_p = 'C:\\Users\\danie\\phd\\pharmo-fmri\\fromgithub\\fmriFeats\\LUTDict'
+results = pd.read_csv('C:\\Users\\danie\\phd\\pharmo-fmri\\fromgithub\\fmriFeats\\Results k=2.csv')
 
 
 #%%
@@ -68,7 +69,7 @@ functional_datasets = LoopFmriprepOutput.loop_fmriprep_output(root, atlas_dict_p
 #%%
 feature_list = ['seg','integ','fcs_var','dfcs_mean_segs', 'dfcs_mean_integs','fcd_var','alff','falff']        
 #%%
-results = pd.read_csv('C:/Users/danie/phd/pharmo-fmri/results 30/Results k=2.csv')
+results = pd.read_csv('D:/phd/pharmo-fmri/results 30.0/results 30/Results k=2.csv')
 
 #%% 
 for dataset in  functional_datasets:
@@ -121,6 +122,12 @@ for dataset in  functional_datasets:
     for feature in c0_integ.columns:
         u_stat, p_value = st.mannwhitneyu(c0_integ[feature], c1_integ[feature])
         significance_integ.append({"Feature": feature, "u-statistic": u_stat, "p-value": p_value})    
+    
+    significance_ratio= []
+    for feature in c0_integ.columns:
+        u_stat, p_value = st.mannwhitneyu(c0_seg[feature]/c0_integ[feature], c1_seg[feature]/c1_integ[feature])
+        significance_ratio.append({"Feature": feature, "u-statistic": u_stat, "p-value": p_value})    
+
 
 
     features_seg = pd.melt(seg_class, id_vars='Clusters', var_name = 'Feature', value_name = 'Value')
@@ -209,7 +216,6 @@ for dataset in  functional_datasets:
         axes[1].annotate(f'p={pval:.3f}', xy=(i, y_position), ha='center', color='black', fontsize=10)
         axes[1].hlines(y=y_position - 0.01, xmin=i - 0.2, xmax=i + 0.2, color='black', linewidth=1)
         
- 
 
     sns.stripplot(
         x='Feature', y='Value', hue='Clusters',
@@ -234,6 +240,13 @@ for dataset in  functional_datasets:
        # width = 0.3,
         #gap = 0.4,    
     )
+    
+    for i, feature in enumerate(c0_integ.columns):
+        pval = significance_ratio[i]["p-value"]
+        y_position = filtered_data['Value'].max() - 3
+        axes[2].annotate(f'p={pval:.3f}', xy=(i, y_position), ha='center', color='black', fontsize=10)
+        axes[2].hlines(y=y_position - 0.1, xmin=i - 0.2, xmax=i + 0.2, color='black', linewidth=1)
+        
 
     _ = [label.set_rotation(30) or label.set_ha('right') for label in axes[1].get_xticklabels()]
     axes[2].set_title('Ratio Seg/Integ')
@@ -245,12 +258,12 @@ for dataset in  functional_datasets:
     axes[0].get_legend().remove()
     axes[1].get_legend().remove()
     axes[2].get_legend().remove()
-    fig.suptitle(f"{N_n} Networks {N_p} Parcelations {preproc}")
+    fig.suptitle(f"{N_n} Networks {N_p} Parcelations {preproc} CSF, GS, WM, and first derivatives regressed out")
     plt.tight_layout()  
     plt.show()
 
 #%% alf, falf
-for dataset in  functional_datasets_h:
+for dataset in  functional_datasets:
     
     N_n = dataset["Networks"]
     N_p = dataset["Parcellations"]
@@ -309,6 +322,12 @@ for dataset in  functional_datasets_h:
     features_seg = pd.melt(seg_class, id_vars='Clusters', var_name = 'Feature', value_name = 'Value')
     features_integ = pd.melt(integ_class, id_vars='Clusters', var_name = 'Feature', value_name = 'Value')
     ratio = features_seg['Value']/features_integ['Value']
+    
+    significance_ratio= []
+    for feature in c0_integ.columns:
+        u_stat, p_value = st.mannwhitneyu(c0_seg[feature]/c0_integ[feature], c1_seg[feature]/c1_integ[feature])
+        significance_ratio.append({"Feature": feature, "u-statistic": u_stat, "p-value": p_value})    
+
         
     SegInteg = features_seg.copy() 
     SegInteg['Value'] = ratio
@@ -397,7 +416,7 @@ for dataset in  functional_datasets_h:
 
     axes[0].get_legend().remove()
     axes[1].get_legend().remove()
-    fig.suptitle(f"{N_n} Networks {N_p} Parcelations {preproc}")
+    fig.suptitle(f"{N_n} Networks {N_p} Parcelations {preproc} CSF, GS, WM, and first derivatives regressed out")
     plt.tight_layout()  
     plt.show()
 
@@ -566,6 +585,12 @@ for dataset in  functional_datasets:
        # width = 0.3,
         #gap = 0.4,    
     )
+    
+    for i, feature in enumerate(c0_integ.columns):
+        pval = significance_ratio[i]["p-value"]
+        y_position = filtered_data['Value'].max() - 3
+        axes[2].annotate(f'p={pval:.3f}', xy=(i, y_position), ha='center', color='black', fontsize=10)
+        axes[2].hlines(y=y_position - 0.1, xmin=i - 0.2, xmax=i + 0.2, color='black', linewidth=1)
 
     _ = [label.set_rotation(30) or label.set_ha('right') for label in axes[1].get_xticklabels()]
     axes[2].set_title('Ratio Mean dFC Seg/Integ')
@@ -577,7 +602,7 @@ for dataset in  functional_datasets:
     axes[0].get_legend().remove()
     axes[1].get_legend().remove()
     axes[2].get_legend().remove()
-    fig.suptitle(f"{N_n} Networks {N_p} Parcelations {preproc}")
+    fig.suptitle(f"{N_n} Networks {N_p} Parcelations {preproc} CSF, GS, WM, and first derivatives regressed out")
     plt.tight_layout()  
     plt.show()
     
@@ -720,15 +745,51 @@ for dataset in  functional_datasets:
         axes[1].annotate(f'p={pval:.3f}', xy=(i, y_position), ha='center', color='black', fontsize=10)
         axes[1].hlines(y=y_position - 0.01, xmin=i - 0.2, xmax=i + 0.2, color='black', linewidth=1)
         
- 
-
 
     axes[0].set_ylim(bottom=0, top=features_seg['Value'].max() + 0.2)  
     axes[1].set_ylim(bottom=0, top=features_integ['Value'].max() + 0.08)  
 
     axes[0].get_legend().remove()
     axes[1].get_legend().remove()
-    fig.suptitle(f"{N_n} Networks {N_p} Parcelations {preproc}")
+    fig.suptitle(f"{N_n} Networks {N_p} Parcelations {preproc} CSF, GS, WM, and first derivatives regressed out")
     plt.tight_layout()  
     plt.show()
 
+#%%
+data = functional_datasets[0].get('data')
+fcs=[]
+for key, features in data.items():
+    fcs.append(features.get("fc"))
+#%%
+labels = fcs[i].columns
+#%%
+unique = []  # List to store new unique labels
+label_count = {}  # Dictionary to count occurrences
+for label in labels:
+    if label in label_count:
+        label_count[label] += 1  # Increment the count for the label
+    else:
+        label_count[label] = 1  # Initialize the count
+
+    # Append the label with its count as a suffix
+    unique.append(f"{label}_{label_count[label]}")
+
+#%%
+fcs = np.array(fcs)
+fcs = np.mean(fcs, axis = 0)
+mean_fc = pd.DataFrame(fcs, index = unique, columns = unique)
+#%%
+sorted_columns = sorted(mean_fc.columns)
+sorted_data = mean_fc[sorted_columns]
+sorted_data.sort_index(inplace = True)
+#%%
+revert_columns = {new_name: new_name.split('_')[0] for new_name in sorted_data.columns}
+revert_index = {index_name: index_name.split('_')[0] for index_name in sorted_data.index}
+sorted_data.rename(columns=revert_columns, inplace=True)
+sorted_data.rename(index=revert_index, inplace=True)
+
+#%%
+plt.figure()
+sns.heatmap(sorted_data,  cmap = 'bwr')
+plt.xticks(rotation=45, ha='right')
+#plt.savefig("5").png
