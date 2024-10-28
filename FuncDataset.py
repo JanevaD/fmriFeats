@@ -32,10 +32,15 @@ preprocessing = ["AROMA_bold_gm",  "preproc_bold_masked_gm_intens",
 P_N = [[100, 7],[200, 7],[100, 17],[500, 17],[1000, 7],[1000, 17]]
 
 functional_datasets = LoopFmriprepOutput.loop_fmriprep_output(root, atlas_dict_p, P_N, preprocessing)
+#%%
+atlas_dict_p = 'C:\\Users\\danie\\phd\\pharmo-fmri\\fromgithub\\fmriFeats\\LUTDict'
+
 
 #%%
 root = 'D:\\fmri_preproc_fmap' 
-atlas_dict_p = 'C:\\Users\\danie\\phd\\pharmo-fmri\\fromgithub\\fmriFeats\\LUTDict'
+
+atlas_dict_p = 'C:\\Users\\danie\\phd\\pharmo-fmri\\scripts\\FunctionalFeatures\\LUTDict'
+#%%
 
 preprocessing = ['AROMA_bold_no_mask']
 
