@@ -48,8 +48,14 @@ preprocessing = ['AROMA_bold_no_mask']
 confound_vars = ['global_signal', 'csf', 'white_matter']
 
 derivative_columns = ['{}_derivative1'.format(c) for c in confound_vars]
+
+confound_vars_power2 = ['{}_power2'.format(c) for c in confound_vars]
+
+derivative_power2 =  ['{}_power2'.format(c) for c in derivative_columns]
+
+
 final_confounds = confound_vars
-#final_confounds = confound_vars + derivative_columns
+final_confounds = confound_vars + derivative_columns + confound_vars_power2 + derivative_power2 
 
 P_N = [[100,7]]
 functional_datasets= LoopFmriprepOutput.loop_fmriprep_output(root, atlas_dict_p, P_N, preprocessing, final_confounds)
@@ -260,7 +266,7 @@ for dataset in  functional_datasets:
     axes[0].get_legend().remove()
     axes[1].get_legend().remove()
     axes[2].get_legend().remove()
-    fig.suptitle(f"{N_n} Networks {N_p} Parcelations {preproc} CSF, GS, WM")
+    fig.suptitle(f"{N_n} Networks {N_p} Parcelations {preproc} CSF, GS, WM derivatives and quadratic terms")
     plt.tight_layout()  
     plt.show()
 
@@ -418,7 +424,7 @@ for dataset in  functional_datasets:
 
     axes[0].get_legend().remove()
     axes[1].get_legend().remove()
-    fig.suptitle(f"{N_n} Networks {N_p} Parcelations {preproc} CSF, GS, WM, regressed out")
+    fig.suptitle(f"{N_n} Networks {N_p} Parcelations {preproc} CSF, GS, WM, regressed out derivatives and quadratic terms")
     plt.tight_layout()  
     plt.show()
 
@@ -604,7 +610,7 @@ for dataset in  functional_datasets:
     axes[0].get_legend().remove()
     axes[1].get_legend().remove()
     axes[2].get_legend().remove()
-    fig.suptitle(f"{N_n} Networks {N_p} Parcelations {preproc} CSF, GS, WM regressed out")
+    fig.suptitle(f"{N_n} Networks {N_p} Parcelations {preproc} CSF, GS, WM regressed out derivatives and quadratic terms")
     plt.tight_layout()  
     plt.show()
     
@@ -753,7 +759,7 @@ for dataset in  functional_datasets:
 
     axes[0].get_legend().remove()
     axes[1].get_legend().remove()
-    fig.suptitle(f"{N_n} Networks {N_p} Parcelations {preproc} CSF, GS, WM regressed out")
+    fig.suptitle(f"{N_n} Networks {N_p} Parcelations {preproc} CSF, GS, WM regressed out derivatives and quadratic terms")
     plt.tight_layout()  
     plt.show()
 
@@ -785,8 +791,8 @@ sorted_columns = sorted(mean_fc.columns)
 sorted_data = mean_fc[sorted_columns]
 sorted_data.sort_index(inplace = True)
 #%%
-revert_columns = {new_name: '_'.join(new_name.split('_')[0:2]) for new_name in sorted_data.columns}
-revert_index = {index_name: '_'.join(index_name.split('_')[0:2]) for index_name in sorted_data.index}
+revert_columns = {new_name: '_'.join(new_name.split('_')[0:3]) for new_name in sorted_data.columns}
+revert_index = {index_name: '_'.join(index_name.split('_')[0:3]) for index_name in sorted_data.index}
 
 sorted_data.rename(columns=revert_columns, inplace=True)
 sorted_data.rename(index=revert_index, inplace=True)

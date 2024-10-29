@@ -24,7 +24,7 @@ def get_fc(time_series):
     correlation_matrix = correlation_measure.fit_transform([time_series.values])[0]
     
     fc = pd.DataFrame(correlation_matrix, columns= time_series.columns, index = time_series.columns)
-    names = ['_'.join(name.split('_')[2:3]) for name in fc.columns]
+    names = ['_'.join(name.split('_')[1:3]) for name in fc.columns]
     fc.columns = names
     fc.index = names
     
@@ -46,7 +46,7 @@ def get_fc_seg_integ(time_series):
     correlation_matrix = correlation_measure.fit_transform([time_series.values])[0]
     
     fc = pd.DataFrame(correlation_matrix, columns= time_series.columns, index = time_series.columns)
-    names = ['_'.join(name.split('_')[2:3]) for name in fc.columns]
+    names = ['_'.join(name.split('_')[1:3]) for name in fc.columns]
     fc.columns = names
     fc.index = names
     
@@ -89,7 +89,7 @@ def get_dfc_feats(time_series,L=15, S=2):
     :rtype: TYPE
     """
  
-    names = ['_'.join(name.split('_')[2:3]) for name in time_series.columns]
+    names = ['_'.join(name.split('_')[1:3]) for name in time_series.columns]
     networks = set(names)
     
     fc_stream =[]
@@ -147,7 +147,7 @@ def get_fluidity_feats(time_series,L=15, S=2):
     :return: functional connectivity stream, stream variance and fcd
     :rtype: TYPE
     """
-    names = ['_'.join(name.split('_')[2:3]) for name in time_series.columns]
+    names = ['_'.join(name.split('_')[1:3]) for name in time_series.columns]
     networks = set(names)
     time_series.columns = names
     fc_stream =[]
