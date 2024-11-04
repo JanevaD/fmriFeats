@@ -1,0 +1,71 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Sep 27 10:51:01 2024
+
+@author: danie
+"""
+class LowVarianceError(Exception):
+    pass
+
+import numpy as np
+from nilearn import  input_data
+import pandas as pd
+import getFFMNI as getFF
+import nilearn as nil
+from nilearn import datasets
+
+
+def getFunctionalFeatures(fmri,  confounds, sub):
+    """
+          A function that extracts functional features based on fmri data and atlas parcelations:
+              image: 4D fmri Data
+              atlas: 3D parcelations     
+              atlas_dict: labels for different parcellations 
+    """  
+    
+    tr = 3.6
+    threshlold_variance = 0.001
+    
+    atlas = datasets.fetch_atlas_schaefer_2018(n_rois=100)
+    atlas_img = atlas.maps
+    atlas_labels = atlas.labels
+    atlas_labels = np.array([byte.decode('utf-8') for byte in atlas_labels])
+    
+    masker = input_data.NiftiLabelsMasker(labels_img = atlas_img, standardize=True, detrend=True, t_r=tr)
+    
+    denoised_fmri = nil.image.clean_img(fmri, confounds=confounds, detrend=True, standardize='zscore_sample', t_r=tr, mask=masker)
+    time_series= masker.fit_transform(denoised_fmri)
+    
+ #   nil.plotting.plot_carpet(denoised_fmri, atlas, t_r=tr, title = f'BOLD carpet plot for {sub}  ')
+    # Save the carpet plot to the specified path
+  #  plt.savefig(f'{sub}_carpet_plot.png')
+    
+    for i in range (time_series.shape[1]):
+        variance = np.var(time_series[:,i])
+        if variance < threshlold_variance:
+            raise LowVarianceError("Low timeseries variance detected.")
+      
+    time_series = pd.DataFrame(time_series, columns=atlas_labels)
+    time_series = time_series.filter(like = "Networks", axis = 1)
+    fc = getFF.get_fc(time_series)
+    seg, integ = getFF.get_fc_seg_integ(time_series)
+    fcs_var, dfcs_mean_segs, dfcs_mean_integs, fcd_var, fcd_mean = getFF.get_dfc_feats(time_series)
+    fcd_vars, fcd_means = getFF.get_fluidity_feats(time_series) 
+    alff, falff = getFF.get_falff(time_series, tr = tr)
+
+    func_feats = {
+          'fc': fc,
+          'seg': seg,
+          'integ': integ,
+          'fcs_var': fcs_var, 
+          'dfcs_mean_segs': dfcs_mean_segs,
+          'dfcs_mean_integs': dfcs_mean_integs,
+          'fcd_var': fcd_var,
+          'fcd_mean': fcd_mean,
+          'fcd_vars': fcd_vars, 
+          'fcd_means': fcd_means,
+          'alff': alff,
+          'falff': falff
+          }
+    
+    return func_feats           
