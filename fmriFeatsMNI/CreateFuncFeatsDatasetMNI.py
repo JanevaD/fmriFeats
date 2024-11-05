@@ -41,7 +41,7 @@ def generate_Features(root, preproc, selected_confounds):
             try:           
                 print(f'Processing Subject: {sub}')
                 print("-"*65)
-                fmri_path = os.path.join(root, sub, "ses-V0", 'func','MNI', f'{sub}_ses-V0_task-rest_run-01_space-MNI152NLin2009cAsym_desc-{preproc}.nii.gz')
+                fmri_path = os.path.join(root, sub, "ses-V0", 'func','MNI', f'{sub}_ses-V0_task-rest_run-01_space-MNI152NLin6Asym_desc-{preproc}.nii.gz')
                 confounds_path = os.path.join(root, sub, "ses-V0", 'func', f'{sub}_ses-V0_task-rest_run-01_desc-confounds_timeseries.tsv')
                             
                 fmri = image.load_img(fmri_path)

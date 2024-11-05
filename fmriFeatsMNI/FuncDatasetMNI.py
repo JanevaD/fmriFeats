@@ -43,7 +43,8 @@ root = 'D:\\fmri_preproc_fmap'
 atlas_dict_p = 'C:\\Users\\danie\\phd\\pharmo-fmri\\scripts\\FunctionalFeatures\\LUTDict'
 #%%
 
-preprocessing = 'AROMA_bold_no_mask'
+#preprocessing = 'AROMA_bold_no_mask'
+preprocessing = 'smoothAROMAnonaggr_bold'
 
 confound_vars = ['global_signal', 'csf', 'white_matter']
 
