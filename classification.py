@@ -13,6 +13,8 @@ from sklearn.metrics import classification_report, confusion_matrix
 import statsmodels.api as sm
 import matplotlib.pyplot as plt
 
+X = 
+Y = 
 
 X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size = 0.2, random_state = 42)
 

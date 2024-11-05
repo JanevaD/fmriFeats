@@ -267,7 +267,7 @@ for dataset in  functional_datasets:
     axes[0].get_legend().remove()
     axes[1].get_legend().remove()
     axes[2].get_legend().remove()
-    fig.suptitle(f"7 Networks 100 Parcelations MNI CSF, GS, WM derivatives and quadratic terms")
+    fig.suptitle(f"7 Networks 100 Parcelations MNI CSF, GS, WM derivatives and quadratic terms AromaSmooth")
     plt.tight_layout()  
     plt.show()
 
@@ -784,3 +784,147 @@ plt.figure()
 sns.heatmap(sorted_data,  cmap = 'bwr')
 plt.xticks(rotation=45, ha='right')
 #plt.savefig("5").png
+
+
+
+#%%
+import ptitprince as pt 
+for dataset in  functional_datasets:
+    
+   
+   
+    nident = []
+    seg = pd.DataFrame()
+    integ = pd.DataFrame() 
+    for i, key in enumerate(functional_datasets["data"].keys()):
+        
+        nident.append(key)
+
+        seg = pd.concat([seg,functional_datasets['data'][key]['fcd_means'].T],axis =1)
+        integ = pd.concat([integ,functional_datasets['data'][key]['fcd_vars']],axis = 1)
+        networks = functional_datasets['data'][key]['fc'].index
+       
+    seg = seg.T
+    integ = integ.T    
+    
+    seg.reset_index(drop = True, inplace = True); seg.set_index(np.array(nident), inplace = True)
+    integ.reset_index(drop = True, inplace = True); integ.set_index(np.array(nident), inplace = True)
+    
+    print (seg.head())
+    print("-"*65)
+    print(integ.head())
+    print("-"*65)
+
+    seg_class = seg.merge(results[['Clusters']], left_index=True, right_index=True, how = 'inner')
+    integ_class = integ.merge(results[['Clusters']], left_index=True, right_index = True, how ='inner')
+    
+    
+    c0_seg = seg_class[seg_class['Clusters'] == 0]; c1_seg = seg_class[seg_class['Clusters'] == 1]
+    c0_seg = c0_seg.drop(columns=['Clusters']); c1_seg = c1_seg.drop(columns=['Clusters'])
+    
+    significance_seg= []
+    for feature in c0_seg.columns:
+        u_stat, p_value = st.mannwhitneyu(c0_seg[feature], c1_seg[feature])
+        significance_seg.append({"Feature": feature, "u-statistic": u_stat, "p-value": p_value})
+    
+    c0_integ = integ_class[integ_class['Clusters'] == 0]; c1_integ = integ_class[integ_class['Clusters'] == 1]
+    c0_integ = c0_integ.drop(columns=['Clusters']); c1_integ = c1_integ.drop(columns=['Clusters'])
+    
+    significance_integ= []
+    for feature in c0_integ.columns:
+        u_stat, p_value = st.mannwhitneyu(c0_integ[feature], c1_integ[feature])
+        significance_integ.append({"Feature": feature, "u-statistic": u_stat, "p-value": p_value})    
+
+
+    features_seg = pd.melt(seg_class, id_vars='Clusters', var_name = 'Feature', value_name = 'Value')
+    features_integ = pd.melt(integ_class, id_vars='Clusters', var_name = 'Feature', value_name = 'Value')
+    ratio = features_seg['Value']/features_integ['Value']
+        
+    SegInteg = features_seg.copy() 
+    SegInteg['Value'] = ratio
+    
+    Q1 = SegInteg['Value'].quantile(0.10)
+    Q3 = SegInteg['Value'].quantile(0.90)
+    IQR = Q3 - Q1
+
+    lower_bound = Q1 - 0.5 * IQR
+    upper_bound = Q3 + 0.5 * IQR
+
+    filtered_data = SegInteg[(SegInteg['Value'] >= lower_bound) & (SegInteg['Value'] <= upper_bound)]
+
+    fig, axes = plt.subplots(3, 1, figsize=(16, 8))
+    colors = ['#FF0101', '#0E0EFF']
+
+    def get_star_annotation(pval):
+        """Returns the star annotation based on the p-value."""
+        if pval <= 0.001:
+            return '***'
+        elif pval <= 0.01:
+            return '**'
+        elif pval <= 0.05:
+            return '*'
+        else:
+            return ''
+
+# Segregated FC by Cluster
+    pt.RainCloud(
+        x='Feature', y='Value', hue='Clusters', data=features_seg,
+        palette=colors, width_viol=0.6, ax=axes[0], dodge=True, orient='v',
+        alpha=.65, move=.2
+        )
+    axes[0].set_title('FALFF')
+
+# Annotate stars for significance for Segregated FC
+    for i, feature in enumerate(c0_seg.columns):
+        pval = significance_seg[i]["p-value"]
+        star_annotation = get_star_annotation(pval)
+        y_position = features_seg['Value'].max() + 0.1
+        if star_annotation:  # Only annotate if there is a star (significant)
+            axes[0].annotate(star_annotation, xy=(i, y_position), ha='center', color='black', fontsize=12)
+        axes[0].hlines(y=y_position - 0.02, xmin=i - 0.2, xmax=i + 0.2, color='black', linewidth=1)
+
+# Integrated FC by Cluster
+    pt.RainCloud(
+        x='Feature', y='Value', hue='Clusters', data=features_integ,
+        palette=colors, width_viol=0.6, ax=axes[1], dodge=True, orient='v',
+        alpha=.65, move=.2
+        )
+    axes[1].set_title('ALFF')
+
+# Annotate stars for significance for Integrated FC
+    for i, feature in enumerate(c0_integ.columns):
+        pval = significance_integ[i]["p-value"]
+        star_annotation = get_star_annotation(pval)
+        y_position = features_integ['Value'].max() + 0.05
+        if star_annotation:
+            axes[1].annotate(star_annotation, xy=(i, y_position), ha='center', color='black', fontsize=12)
+        axes[1].hlines(y=y_position - 0.01, xmin=i - 0.2, xmax=i + 0.2, color='black', linewidth=1)
+
+# Ratio Seg/Integ
+    pt.RainCloud(
+        x='Feature', y='Value', hue='Clusters', data=filtered_data,
+        palette=colors, width_viol=0.6, ax=axes[2], dodge=True, orient='v',
+        alpha=.65, move=.2
+        )
+    axes[2].set_title('Ratio Seg/Integ')
+
+# Annotate stars for significance for Ratio
+    for i, feature in enumerate(c0_integ.columns):
+        pval = significance_ratio[i]["p-value"]
+        star_annotation = get_star_annotation(pval)
+        y_position = filtered_data['Value'].max() - 3
+        if star_annotation:
+            axes[2].annotate(star_annotation, xy=(i, y_position), ha='center', color='black', fontsize=12)
+        axes[2].hlines(y=y_position - 0.1, xmin=i - 0.2, xmax=i + 0.2, color='black', linewidth=1)
+
+# Rotate x-axis labels and remove legends
+    for ax in axes:
+        _ = [label.set_rotation(30) or label.set_ha('right') for label in ax.get_xticklabels()]
+        ax.get_legend().remove()
+
+# Set axis limits and titles
+    axes[0].set_ylim(bottom=0, top=features_seg['Value'].max() + 0.2)
+    axes[1].set_ylim(bottom=0, top=features_integ['Value'].max() + 0.08)
+    fig.suptitle("7 Networks 100 Parcelations MNI CSF, GS, WM derivatives and quadratic terms AromaSmooth")
+    plt.tight_layout()
+    plt.show()
