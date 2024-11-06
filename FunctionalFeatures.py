@@ -51,6 +51,8 @@ def getFunctionalFeatures(fmri, atlas, atlas_dict, confounds, sub):
       
     time_series = pd.DataFrame(time_series, columns=label_names[1:])
     time_series = time_series.filter(like = "Networks", axis = 1)
+    time_series_file = f"{sub}_time_series_T1_AROMA_12P_H.csv"
+    time_series.to_csv(time_series_file, index=False)
     fc = getFF.get_fc(time_series)
     seg, integ = getFF.get_fc_seg_integ(time_series)
     fcs_var, dfcs_mean_segs, dfcs_mean_integs, fcd_var, fcd_mean = getFF.get_dfc_feats(time_series)

@@ -870,7 +870,7 @@ for dataset in  functional_datasets:
     pt.RainCloud(
         x='Feature', y='Value', hue='Clusters', data=features_seg,
         palette=colors, width_viol=0.6, ax=axes[0], dodge=True, orient='v',
-        alpha=.65, move=.2
+        alpha=.65, move=.0
         )
     axes[0].set_title('FALFF')
 
@@ -887,7 +887,7 @@ for dataset in  functional_datasets:
     pt.RainCloud(
         x='Feature', y='Value', hue='Clusters', data=features_integ,
         palette=colors, width_viol=0.6, ax=axes[1], dodge=True, orient='v',
-        alpha=.65, move=.2
+        alpha=.65, move=.0
         )
     axes[1].set_title('ALFF')
 
@@ -904,7 +904,7 @@ for dataset in  functional_datasets:
     pt.RainCloud(
         x='Feature', y='Value', hue='Clusters', data=filtered_data,
         palette=colors, width_viol=0.6, ax=axes[2], dodge=True, orient='v',
-        alpha=.65, move=.2
+        alpha=.65, move=.0
         )
     axes[2].set_title('Ratio Seg/Integ')
 
