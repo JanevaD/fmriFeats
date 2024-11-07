@@ -284,4 +284,88 @@ def get_metastability(time_series):
     
     return metastability
 
+def get_metastability_standard(time_series):
+    """
+    Calculate metastability as the mean variance of instantaneous phase-locking (VAR).
+    
+    :param time_series: regional BOLD signals
+    :type time_series: DataFrame
+    :return: Metastability (mean variance of instantaneous phase-locking)
+    :rtype: float
+    """
+    # Calculate instantaneous phase using Hilbert transform
+    phase_data = np.angle(np.apply_along_axis(lambda x: np.fft.ifft(np.fft.fft(x)), 0, time_series))
+    
+    # Calculate instantaneous phase-locking for each pair of regions
+    n_regions = phase_data.shape[1]
+    phase_locking_values = np.zeros((time_series.shape[0], int(n_regions * (n_regions - 1) / 2)))
+    idx = 0
+    for i in range(n_regions):
+        for j in range(i + 1, n_regions):
+            phase_locking_values[:, idx] = np.cos(phase_data[:, i] - phase_data[:, j])
+            idx += 1
+    
+    # Calculate metastability as the mean variance of instantaneous phase-locking
+    ms_st = np.mean(np.var(phase_locking_values, axis=0))
+    
+    return ms_st
+
+def calculate_rsfa(time_series):
+    """
+    Calculate RSFA (Resting-State Fluctuation Amplitude) as the standard deviation of the time series for each region.
+    """
+    rsfa = time_series.std(axis=0)
+    return rsfa
+
+def calculate_dvars(time_series):
+    """
+    Calculate DVARS (D temporal derivative of timecourses VARiance) as the root mean square of temporal derivatives.
+    """
+    temporal_derivative = np.diff(time_series, axis=0)
+    dvars = np.sqrt((temporal_derivative**2).mean(axis=0))
+    return dvars
+
+def calculate_reho(time_series, k=27):
+    """
+    Calculate ReHo (Regional Homogeneity) as Kendall's coefficient of concordance for neighboring voxels.
+    """
+    # Assuming 'time_series' is already spatially smoothed; if not, smoothing is recommended for ReHo
+    # Implementing ReHo over parcels using Kendall's coefficient
+    
+    # Here we'll calculate ReHo as an average correlation across neighboring parcels.
+    reho = []
+    for i in range(time_series.shape[1]):
+        # Select k-nearest neighbors based on time series similarity for each parcel
+        correlations = np.corrcoef(time_series.iloc[:, i], time_series)
+        sorted_neighbors = np.argsort(-np.abs(correlations))[:k+1]  # top k neighbors
+        reho_val = np.mean(correlations[sorted_neighbors])
+        reho.append(reho_val)
+    reho = pd.Series(reho, index=time_series.columns)
+    return reho
+
+def calculate_tv(time_series):
+    """
+    Calculate Temporal Variability (TV) as the standard deviation of ALFF over time.
+    """
+    # Calculate instantaneous amplitude (ALFF) using the Hilbert transform
+    analytic_signal = hilbert(time_series, axis=0)
+    amplitude_envelope = np.abs(analytic_signal)
+    
+    # Temporal variability is the standard deviation of this amplitude envelope over time
+    tv = amplitude_envelope.std(axis=0)
+    return tv
+
+def calculate_ih(time_series, hemisphere_pairs):
+    """
+    Calculate Inter-hemispheric Homotopic Connectivity (IH) for given pairs of regions in each hemisphere.
+    
+    :param hemisphere_pairs: List of tuples, each containing a pair of columns representing homotopic regions
+    """
+    ih_values = []
+    for left, right in hemisphere_pairs:
+        ih_corr = np.corrcoef(time_series[left], time_series[right])[0, 1]
+        ih_values.append(ih_corr)
+    
+    ih = pd.Series(ih_values, index=[f"{pair[0]}-{pair[1]}" for pair in hemisphere_pairs])
+    return ih
 
