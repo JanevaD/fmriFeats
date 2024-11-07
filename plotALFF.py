@@ -49,43 +49,34 @@ confound_vars_power2 = ['{}_power2'.format(c) for c in confound_vars]
 derivative_power2 =  ['{}_power2'.format(c) for c in derivative_columns]
 final_confounds = confound_vars + derivative_columns + confound_vars_power2 + derivative_power2
 
-bold_img = nib.load('D:/fmri_preproc_fmap/sub-007/ses-V0/func/sub-007_ses-V0_task-rest_run-01_space-T1w_desc-AROMA_bold_no_mask.nii.gz')
-confounds_path = ('D:/fmri_preproc_fmap/sub-007/ses-V0/func/sub-007_ses-V0_task-rest_run-01_desc-confounds_timeseries.tsv')
+fmri_path = 'D:/fmri_preproc_fmap/sub-007/ses-V0/func/sub-007_ses-V0_task-rest_run-01_space-T1w_desc-AROMA_bold_no_mask.nii.gz'
+confounds_path = 'D:/fmri_preproc_fmap/sub-007/ses-V0/func/sub-007_ses-V0_task-rest_run-01_desc-confounds_timeseries.tsv'
 
+# Load the fMRI image, excluding the first slice
+fmri = image.load_img(fmri_path)
+fmri = fmri.slicer[:,:,:,1:]  # Exclude the first slice
+
+# Load confounds timeseries
 confounds_timeseries = pd.read_csv(confounds_path, sep='\t')
-confounds = confounds_timeseries[final_confounds]
-
-bold_data = bold_img.get_fdata()
-
-# Get dimensions
-n_timepoints = bold_data.shape[3]
-n_voxels = np.prod(bold_data.shape[:3])
-
-# Prepare an empty array for ALFF and fALFF
-alff_data = np.zeros(bold_data.shape[:3])
-falff_data = np.zeros(bold_data.shape[:3])
+confounds = confounds_timeseries[final_confounds][1::]
 
 # Bandpass filter parameters
 lowcut = 0.01  # Hz
 highcut = 0.08  # Hz
 fs = 1.0 / 3.6  # Replace TR with your repetition time (in seconds)
 
-# Regress out confounds using nilearn's signal.clean
+# Regress out confounds using nilearn's image.clean_img
 confounds_clean = confounds.values  # Convert to numpy array
-cleaned_bold_data = np.zeros_like(bold_data)
 
-# Loop over voxels and exclude the first slice (x=0)
-for x in range(1, bold_data.shape[0]):  # Start from the second slice
-    for y in range(bold_data.shape[1]):
-        for z in range(bold_data.shape[2]):
-            voxel_time_series = bold_data[x, y, z, :]
-            print(voxel_time_series.shape[1])
-            # Use nilearn to regress out confounds
-            cleaned_voxel_time_series = signal.clean(voxel_time_series, 
-                                                     confounds=confounds_clean, 
-                                                     detrend=True, 
-                                                     standardize=True)
-            cleaned_bold_data[x, y, z, :] = cleaned_voxel_time_series
+# Clean the BOLD data using nilearn's image.clean_img
+cleaned_bold_img = image.clean_img(fmri, confounds=confounds_clean, detrend=True, standardize=True)
+
+# Get cleaned BOLD data from the cleaned image
+cleaned_bold_data = cleaned_bold_img.get_fdata()
+
+# Prepare an empty array for ALFF and fALFF
+alff_data = np.zeros(cleaned_bold_data.shape[:3])
+falff_data = np.zeros(cleaned_bold_data.shape[:3])
 
 # Compute ALFF and fALFF for each voxel on the cleaned data
 for x in range(1, cleaned_bold_data.shape[0]):  # Start from the second slice
@@ -100,10 +91,10 @@ for x in range(1, cleaned_bold_data.shape[0]):  # Start from the second slice
             falff_data[x, y, z] = falff[0]  # Get fALFF for this voxel
 
 # Save ALFF and fALFF as NIfTI images
-alff_img = nib.Nifti1Image(alff_data, bold_img.affine)
+alff_img = nib.Nifti1Image(alff_data, fmri.affine)
 nib.save(alff_img, 'alff_output_no_first_slice.nii.gz')
 
-falff_img = nib.Nifti1Image(falff_data, bold_img.affine)
+falff_img = nib.Nifti1Image(falff_data, fmri.affine)
 nib.save(falff_img, 'falff_output_no_first_slice.nii.gz')
 
 # Load and visualize ALFF

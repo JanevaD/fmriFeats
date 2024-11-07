@@ -55,10 +55,10 @@ derivative_power2 =  ['{}_power2'.format(c) for c in derivative_columns]
 
 
 final_confounds = confound_vars
-final_confounds = confound_vars + derivative_columns + confound_vars_power2 + derivative_power2 
+final_confounds = confound_vars + derivative_columns 
 
 P_N = [[100,7]]
-functional_datasets= LoopFmriprepOutput.loop_fmriprep_output(root, atlas_dict_p, P_N, preprocessing, final_confounds)
+functional_datasets_w= LoopFmriprepOutput.loop_fmriprep_output(root, atlas_dict_p, P_N, preprocessing, final_confounds)
          
        
 

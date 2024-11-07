@@ -70,6 +70,7 @@ def generate_Features(root, atlas_dict, N_net, N_parc, preproc, selected_confoun
                     'fcd_means': func_feats['fcd_means'],
                     'alff': func_feats['alff'],
                     'falff': func_feats['falff'],
+                    'metastability': func_feats['metastability'],
                     }
    
             except FunctionalFeatures.LowVarianceError as e:

@@ -9,6 +9,10 @@ from nilearn.connectome import ConnectivityMeasure
 import pandas as pd
 import numpy as np
 import scipy as sp
+from sklearn.cluster import KMeans
+from sklearn.preprocessing import StandardScaler
+from scipy.signal import hilbert
+from scipy.linalg import eigh
 
 def get_fc(time_series):
     """
@@ -198,3 +202,86 @@ def get_falff(time_series, tr):
         falffs.append(falff)
         
     return alffs, falffs
+
+
+
+def calculate_phase_locking(time_series):
+    """
+    
+
+    Parameters
+    ----------
+    time_series : pandas dataframe con
+        DESCRIPTION.
+
+    Returns
+    -------
+    phase_locking_matrix : TYPE
+        DESCRIPTION.
+
+    """
+    """
+    Calculate instantaneous phase-locking values using the Hilbert transform on parcellated BOLD time series.
+    """
+    analytic_signal = hilbert(time_series.values, axis=0)
+    phase_data = np.angle(analytic_signal)
+    
+    n_regions = phase_data.shape[1]
+    phase_locking_matrix = np.zeros((time_series.shape[0], n_regions, n_regions))
+    
+    for t in range(time_series.shape[0]):
+        for i in range(n_regions):
+            for j in range(n_regions):
+                phase_locking_matrix[t, i, j] = np.cos(phase_data[t, i] - phase_data[t, j])
+    
+    return phase_locking_matrix
+
+def extract_leida_modes(phase_locking_matrix, n_clusters=5):
+    """
+    Extract LEiDA modes using k-means clustering on the leading eigenvector of phase-locking matrices.
+    """
+    n_timepoints, n_regions, _ = phase_locking_matrix.shape
+    leida_vectors = np.zeros((n_timepoints, n_regions))
+    
+    for t in range(n_timepoints):
+        # Calculate the leading eigenvector of the phase-locking matrix at time t
+        eigvals, eigvecs = eigh(phase_locking_matrix[t])
+        leading_eigvec = eigvecs[:, -1]  # leading eigenvector
+        leida_vectors[t] = leading_eigvec
+    
+    # Standardize leading eigenvectors before clustering
+    scaler = StandardScaler()
+    leida_vectors = scaler.fit_transform(leida_vectors)
+    
+    # Perform k-means clustering on the leading eigenvectors
+    kmeans = KMeans(n_clusters=n_clusters, random_state=0)
+    labels = kmeans.fit_predict(leida_vectors)
+    
+    return labels, kmeans.cluster_centers_
+
+def calculate_metastability_from_modes(labels, phase_locking_matrix):
+    """
+    Calculate metastability as the variance of phase-locking within each LEiDA mode.
+    """
+    metastability_values = []
+    unique_modes = np.unique(labels)
+    
+    for mode in unique_modes:
+        mode_indices = np.where(labels == mode)[0]
+        mode_phase_locking = phase_locking_matrix[mode_indices]
+        
+        variances = np.var(mode_phase_locking, axis=0).mean()
+        metastability_values.append(variances)
+    
+    ms= np.mean(metastability_values)
+    return ms
+
+def get_metastability(time_series):
+    
+    phase_locking_matrix = calculate_phase_locking(time_series)
+    labels, mode_centers = extract_leida_modes(phase_locking_matrix)
+    metastability = calculate_metastability_from_modes(labels, phase_locking_matrix)
+    
+    return metastability
+
+
